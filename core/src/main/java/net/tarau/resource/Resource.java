@@ -1,8 +1,6 @@
 package net.tarau.resource;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.net.URI;
 import java.util.Collection;
 
@@ -88,6 +86,13 @@ public interface Resource extends Serializable {
     String getPath();
 
     /**
+     * Returns whether the path represents an absolute path inside the file system supporting this resource.
+     *
+     * @return {@code true} if absolute, {@code false} otherise
+     */
+    boolean isAbsolutePath();
+
+    /**
      * Loads this resource as a string.
      *
      * @return The string contents of the resource.
@@ -102,6 +107,16 @@ public interface Resource extends Serializable {
     byte[] loadAsBytes() throws IOException;
 
     /**
+     * Returns whether the resource can be read.
+     *
+     * @see #getInputStream()
+     * @see #exists()
+     */
+    default boolean isReadable() {
+        return getType() == Type.FILE;
+    }
+
+    /**
      * Returns the resource input stream.
      *
      * @return a non-null stream
@@ -110,35 +125,71 @@ public interface Resource extends Serializable {
     InputStream getInputStream() throws IOException;
 
     /**
-     * Returns whether the resource can be read.
+     * Returns the resource reader, with a {@link  java.nio.charset.StandardCharsets#UTF_8} encoding
      *
-     * @see #getInputStream()
-     * @see #exists()
+     * @return a non-null instance
+     * @throws IOException if an I/O error occurs
      */
-    default boolean isReadable() {
-        return getType() == Type.FILE && exists();
+    Reader getReader() throws IOException;
+
+    /**
+     * Returns whether the resource can be written.
+     * <p>
+     * Some resources can read-only even if the resources could be changed.
+     *
+     * @see #getOutputStream()
+     * @see #isReadable()
+     */
+    default boolean isWritable() {
+        return getType() == Type.FILE;
     }
+
+    /**
+     * Return an {@link OutputStream} for the underlying resource,
+     * allowing to (over-)write its content.
+     *
+     * @throws IOException if the stream could not be opened
+     * @see #getInputStream()
+     */
+    OutputStream getOutputStream() throws IOException;
+
+    /**
+     * Returns the resource writer, with a {@link  java.nio.charset.StandardCharsets#UTF_8} encoding
+     *
+     * @return a non-null instance
+     * @throws IOException if an I/O error occurs
+     */
+    Writer getWriter() throws IOException;
+
+    /**
+     * Creates a resource, if missing.
+     * <p>
+     * If the resource type is a file, an empty file is created, otherwise a directory.
+     *
+     * @throws IOException if an I/O error occurs
+     */
+    void create() throws IOException;
 
     /**
      * Returns whether this resource exists.
      *
      * @return {@code true} if it exists, {@code false} if not.
      */
-    boolean exists();
+    boolean exists() throws IOException;
 
     /**
      * Returns the last modified timestamp for the resource.
      *
      * @return a positive integer, a negative integer if unknown
      */
-    long lastModified();
+    long lastModified() throws IOException;
 
     /**
      * Returns the size of the resource.
      *
      * @return a positive integer, a negative integer if unknown
      */
-    long length();
+    long length() throws IOException;
 
     /**
      * Returns the content type (mimetype) based on the file name extension.
@@ -160,15 +211,24 @@ public interface Resource extends Serializable {
      *
      * @return a non-null instance
      */
-    Collection<Resource> list();
+    Collection<Resource> list() throws IOException;
 
     /**
-     * Resolves a child resource
+     * Resolves a child resource.
      *
      * @param path the relative path
      * @return a non-null resource
      */
     Resource resolve(String path);
+
+    /**
+     * Resolves a child resource.
+     *
+     * @param path the relative path
+     * @param type the type of the child
+     * @return a non-null resource
+     */
+    Resource resolve(String path, Type type);
 
     /**
      * Returns the URI representing the resource.
@@ -184,6 +244,14 @@ public interface Resource extends Serializable {
      * @return a new instance
      */
     Resource withCredential(Credential credential);
+
+    /**
+     * Creates a copy of the resource, with a different absolute path.
+     *
+     * @param absolutePath the name
+     * @return a new instance
+     */
+    Resource withAbsolutePath(boolean absolutePath);
 
     /**
      * Creates a copy of the resource, with a different name.
@@ -204,8 +272,8 @@ public interface Resource extends Serializable {
     /**
      * Creates a copy of the resource, and adds a new attribute.
      *
-     * @param name the name
-     * @param name the value
+     * @param name  the name
+     * @param value the value
      * @return a new instance
      */
     Resource withAttribute(String name, Object value);
@@ -216,12 +284,12 @@ public interface Resource extends Serializable {
     enum Type {
 
         /**
-         * The resource represents a file
+         * The resource represents a file (a leaf)
          */
         FILE,
 
         /**
-         * The resource represents a directory
+         * The resource represents a directory (a container)
          */
         DIRECTORY
     }

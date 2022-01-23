@@ -1,9 +1,6 @@
 package net.tarau.resource;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,7 +11,7 @@ import static net.tarau.resource.ResourceUtils.*;
 /**
  * A resource implementation on top of a {@link File} reference.
  */
-public final class FileResource extends AbstractResource implements WritableResource {
+public final class FileResource extends AbstractResource {
 
     static final long serialVersionUID = 8384627536253212324L;
 
@@ -48,11 +45,11 @@ public final class FileResource extends AbstractResource implements WritableReso
         requireNonNull(file);
 
         Type type = Type.FILE;
-        if (file.isDirectory()) {
+        if (file.exists() && file.isDirectory()) {
             type = Type.DIRECTORY;
         }
 
-        return new FileResource(type, file.getAbsolutePath(), file);
+        return new FileResource(type, hash(file.getAbsolutePath()), file);
     }
 
     /**
@@ -110,6 +107,18 @@ public final class FileResource extends AbstractResource implements WritableReso
     }
 
     @Override
+    public void create() throws IOException {
+        if (exists()) return;
+        if (getType() == Type.FILE) {
+            appendStream(getWriter(), new StringReader(EMPTY_STRING));
+        } else {
+            if (!file.mkdirs()) {
+                throw new IOException("Directory '" + file + "' cannot be created");
+            }
+        }
+    }
+
+    @Override
     public String getFileName() {
         return file.getName();
     }
@@ -145,8 +154,17 @@ public final class FileResource extends AbstractResource implements WritableReso
 
     @Override
     public Resource resolve(String path) {
+        requireNonNull(path);
         File child = new File(file, path);
         return FileResource.create(child);
+    }
+
+    @Override
+    public Resource resolve(String path, Type type) {
+        requireNonNull(path);
+        requireNonNull(type);
+        File child = new File(file, path);
+        return new FileResource(type, hash(child.getAbsolutePath()), child);
     }
 
     @Override

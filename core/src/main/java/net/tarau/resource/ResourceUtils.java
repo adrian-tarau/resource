@@ -135,7 +135,7 @@ public class ResourceUtils {
     }
 
     /**
-     * Removes backslash or forward slash from the value.
+     * Adds forward slash at the end of the value, if needed.
      *
      * @param value the string value
      * @return the string value without backslash or forward slash
@@ -144,6 +144,19 @@ public class ResourceUtils {
         if (isEmpty(value)) return "/";
         char c = value.charAt(value.length() - 1);
         if (c != '/') value += "/";
+        return value;
+    }
+
+    /**
+     * Adds forward slash at the beginning of the value, if needed.
+     *
+     * @param value the string value
+     * @return the string value without backslash or forward slash
+     */
+    public static String addStartSlash(String value) {
+        if (isEmpty(value)) return "/";
+        char c = value.charAt(0);
+        if (c != '/') value = "/" + value;
         return value;
     }
 
@@ -356,6 +369,21 @@ public class ResourceUtils {
     }
 
     /**
+     * Creates a buffered writer out of a given writer if required.
+     *
+     * @param writer the writer
+     * @return a buffered writer, the same object if the writer is already buffered or it does not require any buffer
+     */
+    public static Writer getBufferedWriter(Writer writer) {
+        requireNonNull(writer);
+        if (writer instanceof BufferedWriter) {
+            return writer;
+        } else {
+            return new BufferedWriter(writer, BUFFER_SIZE);
+        }
+    }
+
+    /**
      * Creates a buffered input stream out of a given file.
      *
      * @param file the file
@@ -383,8 +411,25 @@ public class ResourceUtils {
     }
 
     /**
+     * Creates a buffered reader out of a given reader if required.
+     *
+     * @param reader the reader
+     * @return a buffered stream, the same object if the stream is already buffered or it does not require any buffer
+     */
+    public static Reader getBufferedReader(Reader reader) {
+        requireNonNull(reader);
+        if (reader instanceof BufferedReader) {
+            return reader;
+        } else {
+            return new BufferedReader(reader, BUFFER_SIZE);
+        }
+    }
+
+    /**
      * Copies the input stream content into the output stream. Streams
      * are automatically buffered if they do not implement BufferedInputStream/BufferedOutputStream.
+     * <p>
+     * The output stream is closed at the end.
      *
      * @param out destination stream
      * @param in  source stream
@@ -412,6 +457,61 @@ public class ResourceUtils {
         out = getBufferedOutputStream(out);
         in = getBufferedInputStream(in);
         byte[] buffer = new byte[BUFFER_SIZE];
+        long totalCopied = 0;
+        int count;
+        boolean successful = false;
+        try {
+            while ((count = in.read(buffer, 0, BUFFER_SIZE)) != -1) {
+                out.write(buffer, 0, count);
+                totalCopied += count;
+            }
+            out.flush();
+            if (release) {
+                out.close();
+            }
+            successful = true;
+        } finally {
+            closeQuietly(in);
+            if (!successful) {
+                // if not successful(flush or close did not complete, close the output stream even if release = false to it will not remain open
+                closeQuietly(out);
+            }
+        }
+        return totalCopied;
+    }
+
+    /**
+     * Copies the reader content into the writer. Streams
+     * are automatically buffered if they do not implement BufferedInputStream/BufferedOutputStream.
+     * <p>
+     * The writer is closed at the end.
+     *
+     * @param out destination stream
+     * @param in  source stream
+     * @return number of byte copied from source to destination
+     * @throws IOException
+     */
+    public static long appendStream(Writer out, Reader in) throws IOException {
+        return appendStream(out, in, true);
+    }
+
+    /**
+     * Copies the reader content into the writer. Streams
+     * are automatically buffered if they do not implement BufferedInputStream/BufferedOutputStream.
+     *
+     * @param out     destination stream
+     * @param in      source stream
+     * @param release if true closes the output stream after completion
+     * @return number of byte copied from source to destination
+     * @throws IOException
+     */
+    public static long appendStream(Writer out, Reader in, boolean release) throws IOException {
+        requireNonNull(out);
+        requireNonNull(in);
+        // makes sure streams are buffered
+        out = getBufferedWriter(out);
+        in = getBufferedReader(in);
+        char[] buffer = new char[BUFFER_SIZE];
         long totalCopied = 0;
         int count;
         boolean successful = false;

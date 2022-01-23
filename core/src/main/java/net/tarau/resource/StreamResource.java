@@ -13,7 +13,7 @@ import static net.tarau.resource.ResourceUtils.isEmpty;
 import static net.tarau.resource.ResourceUtils.requireNonNull;
 
 /**
- * A resource based on an {@link  InputStream}.
+ * A resource based on an {@link InputStream}.
  * <p>
  * The stream can be consumed once.
  */
@@ -119,7 +119,7 @@ public final class StreamResource extends AbstractResource {
 
     @Override
     public Resource resolve(String path) {
-        return NullResource.create();
+        return NullResource.createNull();
     }
 
     @Override

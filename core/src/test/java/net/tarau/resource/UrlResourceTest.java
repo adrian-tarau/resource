@@ -41,7 +41,7 @@ class UrlResourceTest {
     }
 
     @Test
-    void exists() {
+    void exists() throws IOException {
         Resource resource = ClassPathResource.file("dir1/file11.txt");
         assertTrue(resource.exists());
         resource = ClassPathResource.file("dir1/file111.txt");
@@ -49,7 +49,7 @@ class UrlResourceTest {
     }
 
     @Test
-    void list() {
+    void list() throws IOException {
         Resource resource = ClassPathResource.file("dir1/file11.txt");
         assertEquals(0, resource.list().size());
         resource = ClassPathResource.directory("dir3");
@@ -64,13 +64,13 @@ class UrlResourceTest {
     }
 
     @Test
-    void lastModified() {
+    void lastModified() throws IOException {
         Resource resource = ClassPathResource.file("dir1/file11.txt");
         assertTrue(resource.lastModified() > 1642899716720L);
     }
 
     @Test
-    void length() {
+    void length() throws IOException {
         Resource resource = ClassPathResource.file("dir1/file11.txt");
         assertEquals(4, resource.length());
     }

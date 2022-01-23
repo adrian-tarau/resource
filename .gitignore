@@ -29,3 +29,5 @@ hs_err_pid*
 /core/core.iml
 /s3/s3.iml
 /sftp/sftp.iml
+/ftp/target/
+/ftp/ftp.iml

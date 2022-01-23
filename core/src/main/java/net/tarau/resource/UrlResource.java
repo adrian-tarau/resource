@@ -24,7 +24,6 @@ public class UrlResource extends AbstractResource {
 
     private static final long serialVersionUID = -2384627536253212324L;
 
-    private final String fileName;
     private final URL url;
 
     /**
@@ -63,7 +62,6 @@ public class UrlResource extends AbstractResource {
     protected UrlResource(Type type, String id, URL url) {
         super(type, id);
 
-        this.fileName = ResourceUtils.getFileName(url.getPath());
         this.url = url;
     }
 
@@ -89,7 +87,7 @@ public class UrlResource extends AbstractResource {
 
     @Override
     public String getFileName() {
-        return fileName;
+        return ResourceUtils.getFileName(url.getPath());
     }
 
     @Override
@@ -161,21 +159,30 @@ public class UrlResource extends AbstractResource {
             return Collections.emptyList();
         } catch (IOException e) {
             // we cannot read, presume is not there
-            throw new IllegalStateException("Failed to list resource: " + url, e);
+            throw new IllegalStateException("Failed to list resource " + url, e);
         }
     }
 
     @Override
     public Resource resolve(String path) {
-        String _url = url.toExternalForm();
-        if (!_url.endsWith("/")) {
-            _url += "/";
-        }
-        _url += path;
+        requireNonNull(path);
+        String _url = addEndSlash(url.toExternalForm()) + path;
         try {
             return UrlResource.create(new URL(_url));
         } catch (MalformedURLException e) {
-            throw new IllegalStateException("Failed to create a new URL: " + _url, e);
+            throw new IllegalStateException("Failed to create a child resource for " + _url, e);
+        }
+    }
+
+    @Override
+    public Resource resolve(String path, Type type) {
+        requireNonNull(path);
+        requireNonNull(type);
+        String _url = addEndSlash(url.toExternalForm()) + path;
+        try {
+            return UrlResource.create(new URL(_url), type);
+        } catch (MalformedURLException e) {
+            throw new IllegalStateException("Failed to create a child resource for " + _url, e);
         }
     }
 
@@ -194,7 +201,7 @@ public class UrlResource extends AbstractResource {
 
     @Override
     public long length() {
-        long size = 0;
+        long size = -1;
         try {
             URLConnection urlConnection = url.openConnection();
             size = urlConnection.getContentLength();

@@ -29,13 +29,40 @@
 
     <parent>
         <groupId>net.tarau.vresource</groupId>
-		<artifactId>parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+        <artifactId>parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <name>Virtual Resource - SFTP</name>
 
     <dependencies>
+
+        <!-- Runtime -->
+
+        <dependency>
+            <groupId>net.tarau.vresource</groupId>
+            <artifactId>core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+        </dependency>
+
+        <!-- Tests -->
+
+        <dependency>
+            <groupId>org.apache.sshd</groupId>
+            <artifactId>sshd-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.sshd</groupId>
+            <artifactId>sshd-sftp</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

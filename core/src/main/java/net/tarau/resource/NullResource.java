@@ -20,7 +20,7 @@ public class NullResource extends AbstractResource {
      *
      * @return a non-null resource
      */
-    public static Resource create() {
+    public static Resource createNull() {
         String id = UUID.randomUUID().toString();
 
         return new NullResource(Type.FILE, id);
@@ -67,7 +67,7 @@ public class NullResource extends AbstractResource {
 
     @Override
     public Resource resolve(String path) {
-        return NullResource.create();
+        return NullResource.createNull();
     }
 
     @Override

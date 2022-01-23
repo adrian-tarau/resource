@@ -1,8 +1,9 @@
 package net.tarau.resource;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     private String name;
     private String description;
+    private boolean absolutePath = true;
 
     private Credential credential = new NullCredential();
 
@@ -54,6 +56,11 @@ public abstract class AbstractResource implements Resource, Cloneable {
         return credential;
     }
 
+    protected final void setCredential(Credential credential) {
+        requireNonNull(credential);
+        this.credential = credential;
+    }
+
     @Override
     public Resource getParent() {
         return null;
@@ -70,10 +77,42 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
+    public Reader getReader() throws IOException {
+        return new InputStreamReader(getInputStream(), StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public OutputStream getOutputStream() throws IOException {
+        throw new IOException("Not supported");
+    }
+
+    @Override
+    public Writer getWriter() throws IOException {
+        return new OutputStreamWriter(getOutputStream(), StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public void create() throws IOException {
+        throw new IOException("Not supported");
+    }
+
+    @Override
+    public Resource resolve(String path, Type type) {
+        return resolve(path);
+    }
+
+    @Override
     public Resource withCredential(Credential credential) {
         requireNonNull(credential);
         AbstractResource copy = copy();
         copy.credential = credential;
+        return copy;
+    }
+
+    @Override
+    public Resource withAbsolutePath(boolean absolutePath) {
+        AbstractResource copy = copy();
+        copy.absolutePath = absolutePath;
         return copy;
     }
 
@@ -114,6 +153,15 @@ public abstract class AbstractResource implements Resource, Cloneable {
             path = "/";
         }
         return path;
+    }
+
+    @Override
+    public boolean isAbsolutePath() {
+        return absolutePath;
+    }
+
+    protected final void setAbsolutePath(boolean absolutePath) {
+        this.absolutePath = absolutePath;
     }
 
     @Override
@@ -181,6 +229,15 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     /**
+     * Called when a child is created to update some shared attributes between parent (this instnace) and a child.
+     *
+     * @param child the child to be updated
+     */
+    private final void updateChild(Resource child) {
+        // empty
+    }
+
+    /**
      * Creates a copy of the object
      *
      * @param <T> the type
@@ -192,5 +249,23 @@ public abstract class AbstractResource implements Resource, Cloneable {
         } catch (CloneNotSupportedException e) {
             return throwException(e);
         }
+    }
+
+    /**
+     * Calculates the type of the resource based on the path.
+     *
+     * @param path         the path, can be NULL
+     * @param currentValue the current value, can be NULL
+     * @return the resource type
+     */
+    protected static Type typeFromPath(String path, Type currentValue) {
+        if (isEmpty(path)) return Type.DIRECTORY;
+        if (currentValue == null) {
+            currentValue = Type.FILE;
+            if (path.endsWith("/")) {
+                currentValue = Type.DIRECTORY;
+            }
+        }
+        return currentValue;
     }
 }

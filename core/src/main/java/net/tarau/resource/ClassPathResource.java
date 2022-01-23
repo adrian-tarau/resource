@@ -62,12 +62,12 @@ public final class ClassPathResource extends UrlResource {
             Enumeration<URL> resourceUrls = ClassPathResource.class.getClassLoader().getResources(path);
             Collection<URL> urls = toCollection(resourceUrls);
             if (urls.isEmpty()) {
-                return NullResource.create();
+                return NullResource.createNull();
             } else if (urls.size() > 1) {
                 if (type == Type.FILE) {
                     LOGGER.warning("A file class path resource was requested (" + path + ") but multiple resources were located (" + urls + ")");
                 }
-                type = fromPath(path, type);
+                type = typeFromPath(path, type);
                 Collection<Resource> resources = new ArrayList<>();
                 for (URL url : urls) {
                     String id = url.toExternalForm();
@@ -76,25 +76,15 @@ public final class ClassPathResource extends UrlResource {
                 }
                 return new CompositeResource(type, path, resources);
             } else {
-                type = fromPath(path, type);
+                type = typeFromPath(path, type);
                 URL url = urls.iterator().next();
                 String id = hash(url.toExternalForm());
                 return new ClassPathResource(type, id, url, path);
             }
         } catch (IOException e) {
             LOGGER.warning("Failed to extract class path resources for " + path + ", root cause " + e.getMessage());
-            return NullResource.create();
+            return NullResource.createNull();
         }
-    }
-
-    static Type fromPath(String path, Type defaultValue) {
-        if (defaultValue == null) {
-            defaultValue = Type.FILE;
-            if (path.endsWith("/")) {
-                defaultValue = Type.DIRECTORY;
-            }
-        }
-        return defaultValue;
     }
 
     public ClassPathResource(Type type, String id, URL url, String path) {
@@ -110,6 +100,11 @@ public final class ClassPathResource extends UrlResource {
      */
     public String getPath() {
         return path;
+    }
+
+    @Override
+    public boolean isWritable() {
+        return false;
     }
 
     static Collection<URL> toCollection(Enumeration<URL> enumeration) {
@@ -163,7 +158,7 @@ public final class ClassPathResource extends UrlResource {
         }
 
         @Override
-        public long lastModified() {
+        public long lastModified() throws IOException {
             long lastModified = Long.MIN_VALUE;
             for (Resource resource : resources) {
                 lastModified = Math.max(lastModified, resource.lastModified());
@@ -172,7 +167,7 @@ public final class ClassPathResource extends UrlResource {
         }
 
         @Override
-        public long length() {
+        public long length() throws IOException {
             long length = 0;
             for (Resource resource : resources) {
                 length += resource.length();
@@ -181,7 +176,7 @@ public final class ClassPathResource extends UrlResource {
         }
 
         @Override
-        public Collection<Resource> list() {
+        public Collection<Resource> list() throws IOException {
             Collection<Resource> children = new ArrayList<>();
             for (Resource resource : resources) {
                 children.addAll(resource.list());

@@ -14,7 +14,7 @@ import static net.tarau.resource.ResourceUtils.requireNonNull;
 /**
  * A resource which is stored in memory.
  */
-public final class MemoryResource extends AbstractResource implements WritableResource {
+public final class MemoryResource extends AbstractResource {
 
     static final long serialVersionUID = -2384762736253212324L;
 
@@ -169,7 +169,7 @@ public final class MemoryResource extends AbstractResource implements WritableRe
 
     @Override
     public Resource resolve(String path) {
-        return NullResource.create();
+        return NullResource.createNull();
     }
 
     @Override

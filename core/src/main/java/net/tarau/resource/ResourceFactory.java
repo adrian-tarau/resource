@@ -25,12 +25,31 @@ public class ResourceFactory {
      * @return a non-null instance
      */
     public static Resource resolve(URI uri) {
+        return resolve(uri, null);
+    }
+
+    /**
+     * Creates a resource from a URI.
+     * <p>
+     * If a provider does not exist, it will return a "NULL" resource.
+     *
+     * @param uri        the URI
+     * @param credential the credential, can be NULL
+     * @return a non-null instance
+     */
+    public static Resource resolve(URI uri, Credential credential) {
         ResourceUtils.requireNonNull(uri);
+        if (credential == null) credential = new NullCredential();
         initialize();
         for (ResourceResolver resolver : resolvers) {
-            if (resolver.supports(uri)) return resolver.resolve(uri);
+            if (resolver.supports(uri)) {
+                Resource resource = resolver.resolve(uri);
+                if (resource instanceof AbstractResource) {
+                    ((AbstractResource) resource).setCredential(credential);
+                }
+            }
         }
-        return NullResource.create();
+        return NullResource.createNull();
     }
 
     /**

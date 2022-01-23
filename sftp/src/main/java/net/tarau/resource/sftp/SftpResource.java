@@ -1,0 +1,317 @@
+package net.tarau.resource.sftp;
+
+import com.jcraft.jsch.*;
+import net.tarau.resource.*;
+
+import java.io.*;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Vector;
+import java.util.logging.Logger;
+
+import static net.tarau.resource.ResourceUtils.*;
+
+/**
+ * A resource for a SFTP resource.
+ */
+public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp> {
+
+    private static final Logger LOGGER = Logger.getLogger(SftpResource.class.getName());
+
+    private final URI uri;
+
+    /**
+     * Creates a resource with a file type.
+     *
+     * @param uri        the URI
+     * @param credential the credential
+     * @return a non-null instance
+     */
+    public static StatefulResource file(URI uri, Credential credential) {
+        return create(Type.FILE, uri, credential);
+    }
+
+    /**
+     * Creates a resource with a directory type.
+     *
+     * @param uri        the URI
+     * @param credential the credential
+     * @return a non-null instance
+     */
+    public static StatefulResource directory(URI uri, Credential credential) {
+        return create(Type.DIRECTORY, uri, credential);
+    }
+
+    /**
+     * Creates a resource and auto-detects the type.
+     *
+     * @param uri        the URI
+     * @param credential the credential
+     * @return a non-null instance
+     */
+    public static StatefulResource create(URI uri, Credential credential) {
+        requireNonNull(uri);
+        String path = uri.getPath();
+
+        String id = ResourceUtils.hash(uri.toASCIIString());
+        Type type = typeFromPath(path, null);
+        return create(type, uri, credential);
+    }
+
+    /**
+     * Creates a resource and auto-detects the type.
+     *
+     * @param type       the resource type
+     * @param uri        the URI
+     * @param credential the credential
+     * @return a non-null instance
+     */
+    public static StatefulResource create(Type type, URI uri, Credential credential) {
+        requireNonNull(type);
+        requireNonNull(uri);
+        requireNonNull(credential);
+
+        String id = ResourceUtils.hash(uri.toASCIIString());
+        SftpResource resource = new SftpResource(type, id, uri);
+        resource.setCredential(credential);
+        return resource;
+    }
+
+    private SftpResource(Type type, String id, URI uri) {
+        super(type, id);
+
+        requireNonNull(uri);
+        this.uri = uri;
+        setAbsolutePath(false);
+    }
+
+    @Override
+    public String getFileName() {
+        return ResourceUtils.getFileName(uri.getPath());
+    }
+
+    @Override
+    public InputStream getInputStream() throws IOException {
+        Session session = createSession();
+        ChannelSftp channel = createChannel(session);
+        try {
+            InputStream inputStream = channel.get(getRealPath());
+            return new StatefulInputStream(inputStream, session, channel);
+        } catch (SftpException e) {
+            throw translateException(e);
+        }
+    }
+
+    @Override
+    public OutputStream getOutputStream() throws IOException {
+        Session session = createSession();
+        ChannelSftp channel = createChannel(session);
+        try {
+            OutputStream outputStream = channel.put(getRealPath());
+            return new SftpOutputStream(outputStream, session, channel);
+        } catch (SftpException e) {
+            throw translateException(e);
+        }
+    }
+
+    @Override
+    public void create() throws IOException {
+        if (exists()) return;
+        if (getType() == Type.FILE) {
+            appendStream(getWriter(), new StringReader(EMPTY_STRING));
+        } else {
+            Resource parent = getParent();
+            if (parent != null && !parent.exists()) parent.create();
+            doWithChannel("create_directory", channel -> {
+                channel.mkdir(getRealPath());
+                return null;
+            });
+        }
+    }
+
+    @Override
+    public boolean exists() throws IOException {
+        try {
+            return doWithChannel("exists", channel -> {
+                SftpATTRS attrs = channel.lstat(getRealPath());
+                return attrs != null;
+            });
+        } catch (FileNotFoundException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public long lastModified() throws IOException {
+        return doWithChannel("last_modified", channel -> {
+            SftpATTRS attrs = channel.lstat(getRealPath());
+            return (long) attrs.getMTime() * 1000;
+        });
+    }
+
+    @Override
+    public long length() throws IOException {
+        return doWithChannel("last_modified", channel -> {
+            SftpATTRS attrs = channel.lstat(getRealPath());
+            return attrs.getSize();
+        });
+    }
+
+    @Override
+    public Collection<Resource> list() throws IOException {
+        return doWithChannel("list", channel -> {
+            Vector<Object> entries = channel.ls(getRealPath());
+            Collection<Resource> children = new ArrayList<>(entries.size());
+            for (Object entry : entries) {
+
+            }
+            return children;
+        });
+    }
+
+    @Override
+    public Resource resolve(String path) {
+        requireNonNull(path);
+        String _uri = addEndSlash(uri.toASCIIString()) + path;
+        try {
+            return SftpResource.create(URI.create(_uri), getCredential());
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to create a child resource for " + _uri, e);
+        }
+    }
+
+    @Override
+    public Resource resolve(String path, Type type) {
+        requireNonNull(path);
+        requireNonNull(type);
+        String _uri = addEndSlash(uri.toASCIIString()) + path;
+        try {
+            return SftpResource.create(type, URI.create(_uri), getCredential());
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to create a child resource for " + _uri, e);
+        }
+    }
+
+    @Override
+    public URI toURI() {
+        return uri;
+    }
+
+    @Override
+    protected Session doCreateSession() throws Exception {
+        Credential credential = getCredential();
+        JSch jsch = new JSch();
+        jsch.setHostKeyRepository(new HostKeyRepositoryImpl());
+        Session session;
+        if (credential instanceof UserPasswordCredential) {
+            UserPasswordCredential upc = (UserPasswordCredential) credential;
+            session = jsch.getSession(upc.getUserName(), uri.getHost());
+            if (uri.getPort() > 0) session.setPort(uri.getPort());
+            session.setPassword(upc.getPassword());
+        } else {
+            throw new IllegalArgumentException("Unexpected credential type " + credential.getClass().getName());
+        }
+        session.connect();
+        return session;
+    }
+
+    @Override
+    protected void doReleaseSession(Session session) throws Exception {
+        session.disconnect();
+    }
+
+    @Override
+    protected ChannelSftp doCreateChannel(Session session) throws Exception {
+        ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
+        channelSftp.connect();
+        return channelSftp;
+    }
+
+    @Override
+    protected void doReleaseChannel(Session session, ChannelSftp channel) throws Exception {
+        channel.disconnect();
+    }
+
+    @Override
+    protected boolean isValid(Session session) throws Exception {
+        return session.isConnected();
+    }
+
+    @Override
+    protected IOException translateException(Exception e) {
+        if (e instanceof SftpException) {
+            SftpException sftpException = (SftpException) e;
+            switch (sftpException.id) {
+                case ChannelSftp.SSH_FX_PERMISSION_DENIED:
+                    return new IOException("Permission denied for '" + toURI() + "'");
+                case ChannelSftp.SSH_FX_NO_SUCH_FILE:
+                    return new FileNotFoundException("File '" + uri.getPath() + "' does not exist at '" + uri + "'");
+                default:
+                    return new IOException("SFTP action failed for '" + toURI() + "'", e);
+            }
+        } else if (e instanceof JSchException) {
+            return new IOException("SSH action failed for '" + toURI() + "'", e);
+        } else {
+            return new IOException("Unknown failure for resource '" + toURI() + "'", e);
+        }
+    }
+
+    private String getRealPath() {
+        String path = toURI().getPath();
+        if (isAbsolutePath()) {
+            return addStartSlash(path);
+        } else {
+            return removeStartSlash(path);
+        }
+    }
+
+    private IOException translate(SftpException exception) {
+        switch (exception.id) {
+            case ChannelSftp.SSH_FX_PERMISSION_DENIED:
+                return new IOException("Permission denied for '" + uri.getPath() + "'");
+            case ChannelSftp.SSH_FX_NO_SUCH_FILE:
+                return new FileNotFoundException("File '" + uri.getPath() + "' does not exist");
+            default:
+                return new IOException("SFTP action failed for '" + uri.getPath() + "'", exception);
+        }
+    }
+
+    static class HostKeyRepositoryImpl implements HostKeyRepository {
+
+        @Override
+        public int check(String host, byte[] key) {
+            return OK;
+        }
+
+        @Override
+        public void add(HostKey hostkey, UserInfo ui) {
+
+        }
+
+        @Override
+        public void remove(String host, String type) {
+
+        }
+
+        @Override
+        public void remove(String host, String type, byte[] key) {
+
+        }
+
+        @Override
+        public String getKnownHostsRepositoryID() {
+            return "null";
+        }
+
+        @Override
+        public HostKey[] getHostKey() {
+            return new HostKey[0];
+        }
+
+        @Override
+        public HostKey[] getHostKey(String host, String type) {
+            return new HostKey[0];
+        }
+    }
+}
