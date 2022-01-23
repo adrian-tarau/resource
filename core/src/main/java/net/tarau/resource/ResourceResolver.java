@@ -19,7 +19,7 @@ public interface ResourceResolver {
      * Returns a resource for a given URI.
      *
      * @param uri the URI for the resource
-     * @return
+     * @return the resource
      */
     Resource resolve(URI uri);
 }

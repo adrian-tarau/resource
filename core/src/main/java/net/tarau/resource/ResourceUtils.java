@@ -18,6 +18,11 @@ public class ResourceUtils {
 
     private static final Logger LOGGER = Logger.getLogger(ResourceUtils.class.getName());
 
+    public static final String CLASS_PATH_SCHEME = "classpath";
+    public static final String FILE_SCHEME = "file";
+    public static final String HTTP_SCHEME = "http";
+    public static final String HTTPS_SCHEME = "https";
+
     public static final String EMPTY_STRING = "";
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
     public static final int BUFFER_SIZE = 128 * 1024;

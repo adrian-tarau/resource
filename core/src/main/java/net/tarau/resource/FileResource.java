@@ -153,4 +153,18 @@ public final class FileResource extends AbstractResource implements WritableReso
     public URI toURI() {
         return file.toURI();
     }
+
+    public static class FileResourceResolver implements ResourceResolver {
+
+        @Override
+        public boolean supports(URI uri) {
+            String scheme = uri.getScheme();
+            return scheme == null || FILE_SCHEME.equalsIgnoreCase(scheme);
+        }
+
+        @Override
+        public Resource resolve(URI uri) {
+            return FileResource.create(uri);
+        }
+    }
 }

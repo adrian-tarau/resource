@@ -213,4 +213,18 @@ public final class ClassPathResource extends UrlResource {
             throw new IllegalStateException("Resource 'classpath://" + path + " is a container");
         }
     }
+
+    public static class ClassPathResourceResolver implements ResourceResolver {
+
+        @Override
+        public boolean supports(URI uri) {
+            String scheme = uri.getScheme();
+            return CLASS_PATH_SCHEME.equalsIgnoreCase(scheme);
+        }
+
+        @Override
+        public Resource resolve(URI uri) {
+            return ClassPathResource.create(uri.getPath());
+        }
+    }
 }
