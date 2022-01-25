@@ -22,8 +22,6 @@ class ResourceFactoryTest {
         assertSame(ClassPathResource.class, resource.getClass());
     }
 
-
-
     @Test
     void resolveUnknown() {
         Resource resource = ResourceFactory.resolve(URI.create("dummy:/file1.txt"));

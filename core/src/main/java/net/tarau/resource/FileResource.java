@@ -11,7 +11,7 @@ import static net.tarau.resource.ResourceUtils.*;
 /**
  * A resource implementation on top of a {@link File} reference.
  */
-public final class FileResource extends AbstractResource {
+public class FileResource extends AbstractResource {
 
     static final long serialVersionUID = 8384627536253212324L;
 
@@ -71,7 +71,7 @@ public final class FileResource extends AbstractResource {
         }
     }
 
-    private FileResource(Type type, String id, File file) {
+    protected FileResource(Type type, String id, File file) {
         super(type, id);
 
         requireNonNull(file);
