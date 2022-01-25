@@ -41,7 +41,7 @@ public class NullResource extends AbstractResource {
     }
 
     @Override
-    public InputStream getInputStream() {
+    public InputStream doGetInputStream() {
         return new ByteArrayInputStream(new byte[0]);
     }
 

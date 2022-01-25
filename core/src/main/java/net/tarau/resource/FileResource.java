@@ -97,18 +97,18 @@ public class FileResource extends AbstractResource {
     }
 
     @Override
-    public InputStream getInputStream() throws IOException {
+    public InputStream doGetInputStream() throws IOException {
         return getBufferedInputStream(file);
     }
 
     @Override
-    public OutputStream getOutputStream() throws IOException {
+    public OutputStream doGetOutputStream() throws IOException {
         return getBufferedOutputStream(file);
     }
 
     @Override
-    public void create() throws IOException {
-        if (exists()) return;
+    public Resource create() throws IOException {
+        if (exists()) return this;
         if (getType() == Type.FILE) {
             appendStream(getWriter(), new StringReader(EMPTY_STRING));
         } else {
@@ -116,6 +116,7 @@ public class FileResource extends AbstractResource {
                 throw new IOException("Directory '" + file + "' cannot be created");
             }
         }
+        return this;
     }
 
     @Override

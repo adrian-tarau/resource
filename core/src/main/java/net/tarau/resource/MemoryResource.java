@@ -148,7 +148,7 @@ public final class MemoryResource extends AbstractResource {
     }
 
     @Override
-    public InputStream getInputStream() {
+    public InputStream doGetInputStream() {
         return new ByteArrayInputStream(data);
     }
 
@@ -158,7 +158,7 @@ public final class MemoryResource extends AbstractResource {
     }
 
     @Override
-    public OutputStream getOutputStream() throws IOException {
+    public OutputStream doGetOutputStream() throws IOException {
         return new MemoryOutputStream();
     }
 
@@ -182,6 +182,7 @@ public final class MemoryResource extends AbstractResource {
     }
 
     class MemoryOutputStream extends ByteArrayOutputStream {
+
         @Override
         public void close() throws IOException {
             super.close();

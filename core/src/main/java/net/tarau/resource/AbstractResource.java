@@ -14,6 +14,8 @@ import static net.tarau.resource.ResourceUtils.*;
  */
 public abstract class AbstractResource implements Resource, Cloneable {
 
+    protected static final int BUFFER_SIZE = 128 * 1024;
+
     private final Type type;
     private final String id;
 
@@ -82,7 +84,32 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public OutputStream getOutputStream() throws IOException {
+    public final InputStream getInputStream() throws IOException {
+        return getBufferedInputStream(doGetInputStream());
+    }
+
+    @Override
+    public final OutputStream getOutputStream() throws IOException {
+        return getBufferedOutputStream(doGetOutputStream());
+    }
+
+    /**
+     * Subclasses will provide an input stream for this resource.
+     *
+     * @return a non-null instance
+     * @throws IOException if I/O error occurs
+     */
+    protected InputStream doGetInputStream() throws IOException {
+        throw new IOException("Not supported");
+    }
+
+    /**
+     * Subclasses will provide an output stream for this resource.
+     *
+     * @return a non-null instance
+     * @throws IOException if I/O error occurs
+     */
+    protected OutputStream doGetOutputStream() throws IOException {
         throw new IOException("Not supported");
     }
 
@@ -92,7 +119,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public void create() throws IOException {
+    public Resource create() throws IOException {
         throw new IOException("Not supported");
     }
 
@@ -267,5 +294,15 @@ public abstract class AbstractResource implements Resource, Cloneable {
             }
         }
         return currentValue;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{" +
+                "type=" + getType() +
+                ", URI='" + toURI() + '\'' +
+                ", name='" + getName() + '\'' +
+                ", credential=" + getCredential() +
+                '}';
     }
 }

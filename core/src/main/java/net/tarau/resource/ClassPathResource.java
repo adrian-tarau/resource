@@ -148,7 +148,7 @@ public final class ClassPathResource extends UrlResource {
         }
 
         @Override
-        public InputStream getInputStream() {
+        public InputStream doGetInputStream() {
             return throwContainerException();
         }
 

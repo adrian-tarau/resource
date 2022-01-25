@@ -81,7 +81,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    public InputStream getInputStream() throws IOException {
+    public InputStream doGetInputStream() throws IOException {
         return url.openStream();
     }
 

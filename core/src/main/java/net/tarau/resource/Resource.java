@@ -168,7 +168,7 @@ public interface Resource extends Serializable {
      *
      * @throws IOException if an I/O error occurs
      */
-    void create() throws IOException;
+    Resource create() throws IOException;
 
     /**
      * Returns whether this resource exists.

@@ -86,7 +86,7 @@ public final class StreamResource extends AbstractResource {
     }
 
     @Override
-    public InputStream getInputStream() throws IOException {
+    public InputStream doGetInputStream() throws IOException {
         if (streamConsumed) {
             throw new IOException("Stream '" + getFileName() + "' already consumed");
         }

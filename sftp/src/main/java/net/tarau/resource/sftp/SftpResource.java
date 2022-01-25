@@ -92,7 +92,7 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     }
 
     @Override
-    public InputStream getInputStream() throws IOException {
+    public InputStream doGetInputStream() throws IOException {
         Session session = createSession();
         ChannelSftp channel = createChannel(session);
         try {
@@ -104,7 +104,7 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     }
 
     @Override
-    public OutputStream getOutputStream() throws IOException {
+    public OutputStream doGetOutputStream() throws IOException {
         Session session = createSession();
         ChannelSftp channel = createChannel(session);
         try {
@@ -116,8 +116,8 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     }
 
     @Override
-    public void create() throws IOException {
-        if (exists()) return;
+    public Resource create() throws IOException {
+        if (exists()) return this;
         if (getType() == Type.FILE) {
             appendStream(getWriter(), new StringReader(EMPTY_STRING));
         } else {
@@ -128,6 +128,7 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
                 return null;
             });
         }
+        return this;
     }
 
     @Override
