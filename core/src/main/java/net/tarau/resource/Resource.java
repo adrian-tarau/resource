@@ -166,9 +166,26 @@ public interface Resource extends Serializable {
      * <p>
      * If the resource type is a file, an empty file is created, otherwise a directory.
      *
+     * @return self
      * @throws IOException if an I/O error occurs
      */
     Resource create() throws IOException;
+
+    /**
+     * Deletes a resource, if exists.
+     *
+     * @return self
+     * @throws IOException if an I/O error occurs
+     */
+    Resource delete() throws IOException;
+
+    /**
+     * Deletes the children, if any.
+     *
+     * @return self
+     * @throws IOException if an I/O error occurs
+     */
+    Resource empty() throws IOException;
 
     /**
      * Returns whether this resource exists.

@@ -124,6 +124,31 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
+    public final Resource delete() throws IOException {
+        if (getType() == Type.FILE) {
+            doDelete();
+        } else {
+            for (Resource child : list()) {
+                child.delete();
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public Resource empty() throws IOException {
+        if (getType() != Type.DIRECTORY) return this;
+        for (Resource child : list()) {
+            child.delete();
+        }
+        return this;
+    }
+
+    protected void doDelete() throws IOException {
+        throw new IOException("Not supported");
+    }
+
+    @Override
     public Resource resolve(String path, Type type) {
         return resolve(path);
     }

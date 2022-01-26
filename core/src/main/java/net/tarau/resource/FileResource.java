@@ -2,6 +2,7 @@ package net.tarau.resource;
 
 import java.io.*;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -117,6 +118,13 @@ public class FileResource extends AbstractResource {
             }
         }
         return this;
+    }
+
+    @Override
+    protected void doDelete() throws IOException {
+        if (file.exists()) {
+            Files.delete(file.toPath());
+        }
     }
 
     @Override
