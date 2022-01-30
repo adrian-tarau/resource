@@ -24,12 +24,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.tarau.vresource</groupId>
-    <artifactId>core</artifactId>
+    <artifactId>vresource-core</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <parent>
         <groupId>net.tarau.vresource</groupId>
-		<artifactId>parent</artifactId>
+		<artifactId>vresource-parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
     </parent>
 
