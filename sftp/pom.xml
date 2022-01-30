@@ -41,7 +41,7 @@
 
         <dependency>
             <groupId>net.tarau.vresource</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>vresource-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
