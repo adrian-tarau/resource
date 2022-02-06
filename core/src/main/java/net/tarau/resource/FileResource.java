@@ -37,7 +37,9 @@ public class FileResource extends AbstractResource {
     }
 
     /**
-     * Create a new resource from a file and with a relative path to an arbitrary root.
+     * Create a new resource from a file.
+     * <p>
+     * The type of the resource is based on the file attributes. If the file/directory does not exist, it is presumed a file.
      *
      * @param file the file of the resource
      * @return a non-null instance
@@ -51,6 +53,30 @@ public class FileResource extends AbstractResource {
         }
 
         return new FileResource(type, hash(file.getAbsolutePath()), file);
+    }
+
+    /**
+     * Create a new resource from a file.
+     *
+     * @param file the file of the resource
+     * @return a non-null instance
+     */
+    public static Resource file(File file) {
+        requireNonNull(file);
+
+        return new FileResource(Type.FILE, hash(file.getAbsolutePath()), file);
+    }
+
+    /**
+     * Create a new resource from a directory.
+     *
+     * @param file the file of the resource
+     * @return a non-null instance
+     */
+    public static Resource directory(File file) {
+        requireNonNull(file);
+
+        return new FileResource(Type.DIRECTORY, hash(file.getAbsolutePath()), file);
     }
 
     /**
