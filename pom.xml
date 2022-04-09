@@ -23,8 +23,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.tarau.vresource</groupId>
-    <artifactId>vresource-parent</artifactId>
+    <groupId>net.microfalx.resource</groupId>
+    <artifactId>resource-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
@@ -34,7 +34,7 @@
         <version>23</version>
     </parent>
 
-    <name>Virtual Resource</name>
+    <name>Resource</name>
     <description>Low level resource abstraction for Java projects.</description>
     <url>https://github.com/adrian-tarau/vresource</url>
 

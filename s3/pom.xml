@@ -23,17 +23,17 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.tarau.vresource</groupId>
-    <artifactId>vresource-s3</artifactId>
+    <groupId>net.microfalx.resource</groupId>
+    <artifactId>resource-s3</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <parent>
-        <groupId>net.tarau.vresource</groupId>
-		<artifactId>vresource-parent</artifactId>
+        <groupId>net.microfalx.resource</groupId>
+		<artifactId>resource-parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <name>Virtual Resource - S3</name>
+    <name>Resource - S3</name>
 
     <dependencies>
     </dependencies>

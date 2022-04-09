@@ -23,25 +23,25 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.tarau.vresource</groupId>
-    <artifactId>vresource-sftp</artifactId>
+    <groupId>net.microfalx.resource</groupId>
+    <artifactId>resource-sftp</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <parent>
-        <groupId>net.tarau.vresource</groupId>
-        <artifactId>vresource-parent</artifactId>
+        <groupId>net.microfalx.resource</groupId>
+        <artifactId>resource-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <name>Virtual Resource - SFTP</name>
+    <name>Resource - SFTP</name>
 
     <dependencies>
 
         <!-- Runtime -->
 
         <dependency>
-            <groupId>net.tarau.vresource</groupId>
-            <artifactId>vresource-core</artifactId>
+            <groupId>net.microfalx.resource</groupId>
+            <artifactId>resource-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
