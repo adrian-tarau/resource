@@ -26,7 +26,7 @@
     <groupId>net.microfalx.resource</groupId>
     <artifactId>resource-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
+    <packaging>pom</packaging>
 
     <parent>
         <groupId>org.apache</groupId>
@@ -48,12 +48,12 @@
         <developerConnection>scm:git:https://github.com/adrian-tarau/vresource</developerConnection>
         <url>https://github.com/adrian-tarau/vresource/tree/main</url>
     </scm>
-	
-	<modules>
-		<module>core</module>
-		<module>sftp</module>
-		<module>s3</module>
-	</modules>
+
+    <modules>
+        <module>core</module>
+        <module>sftp</module>
+        <module>s3</module>
+    </modules>
 
     <issueManagement>
         <system>github</system>
@@ -65,9 +65,13 @@
     <properties>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>5.8.2</junit.version>
-        <assertj.version>3.22.0</assertj.version>
-        <jmh.version>1.34</jmh.version>
+        <junit.version>5.9.1</junit.version>
+        <assertj.version>3.23.1</assertj.version>
+        <jmh.version>1.35</jmh.version>
+        <sshd.version>2.9.1</sshd.version>
+        <minio.version>8.4.5</minio.version>
+        <jsch.version>0.1.55</jsch.version>
+        <testcontainers.version>1.17.5</testcontainers.version>
     </properties>
 
     <developers>
@@ -85,19 +89,13 @@
             <dependency>
                 <groupId>com.jcraft</groupId>
                 <artifactId>jsch</artifactId>
-                <version>0.1.55</version>
+                <version>${jsch.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.apache.sshd</groupId>
-                <artifactId>sshd-core</artifactId>
-                <version>2.8.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.sshd</groupId>
-                <artifactId>sshd-sftp</artifactId>
-                <version>2.8.0</version>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
             </dependency>
 
             <!-- Tests -->
@@ -109,20 +107,41 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.openjdk.jmh</groupId>
                 <artifactId>jmh-core</artifactId>
                 <version>${jmh.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.openjdk.jmh</groupId>
                 <artifactId>jmh-generator-annprocess</artifactId>
                 <version>${jmh.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers</artifactId>
+                <version>${testcontainers.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.sshd</groupId>
+                <artifactId>sshd-core</artifactId>
+                <version>${sshd.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.sshd</groupId>
+                <artifactId>sshd-sftp</artifactId>
+                <version>${sshd.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

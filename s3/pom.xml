@@ -29,13 +29,29 @@
 
     <parent>
         <groupId>net.microfalx.resource</groupId>
-		<artifactId>resource-parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+        <artifactId>resource-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <name>Resource - S3</name>
 
     <dependencies>
+
+        <!-- Runtime -->
+
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+        </dependency>
+
+        <!-- Tests -->
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 </project>
