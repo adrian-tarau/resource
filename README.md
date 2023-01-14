@@ -8,5 +8,6 @@ or [Apache Commons Virtual File System](https://commons.apache.org/proper/common
 In addition to basic implementations for file, class path, URL, in-memory and stream resources
 resources, the project provides the following implementations:
 
+* archive: Transparent support for multiple archives 
 * sftp: SSH File Transfer Protocol
-* s3: Amazon Simple Storage Service
+* s3: Amazon Simple Storage Service* 

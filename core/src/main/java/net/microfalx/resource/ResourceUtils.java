@@ -28,6 +28,11 @@ public class ResourceUtils {
     public static final int BUFFER_SIZE = 128 * 1024;
 
     /**
+     * Holds all metrics related to resource
+     */
+    protected static Metrics METRICS = Metrics.of("resource");
+
+    /**
      * Checks that the specified object reference is not {@code null}.
      *
      * @param value the object reference to check for nullity

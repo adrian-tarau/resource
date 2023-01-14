@@ -46,22 +46,22 @@ public class NullResource extends AbstractResource {
     }
 
     @Override
-    public boolean exists() {
+    public boolean doExists() {
         return false;
     }
 
     @Override
-    public long lastModified() {
+    protected long doLastModified() {
         return 0;
     }
 
     @Override
-    public long length() {
+    protected long doLength() {
         return 0;
     }
 
     @Override
-    public Collection<Resource> list() {
+    protected Collection<Resource> doList() {
         return Collections.emptyList();
     }
 

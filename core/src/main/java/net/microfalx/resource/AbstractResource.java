@@ -4,8 +4,11 @@ import java.io.*;
 import java.net.URI;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import static net.microfalx.resource.ResourceUtils.*;
 
@@ -15,6 +18,7 @@ import static net.microfalx.resource.ResourceUtils.*;
 public abstract class AbstractResource implements Resource, Cloneable {
 
     protected static final int BUFFER_SIZE = 128 * 1024;
+    protected static final int MAX_DEPTH = 128;
 
     private final Type type;
     private final String id;
@@ -69,7 +73,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public <T> T getAttribute(String name) {
+    public final <T> T getAttribute(String name) {
         requireNonNull(name);
 
         if (attributes == null) {
@@ -85,12 +89,12 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final InputStream getInputStream() throws IOException {
-        return getBufferedInputStream(doGetInputStream());
+        return time("get_input", () -> getBufferedInputStream(doGetInputStream()));
     }
 
     @Override
     public final OutputStream getOutputStream() throws IOException {
-        return getBufferedOutputStream(doGetOutputStream());
+        return time("get_output", () -> getBufferedOutputStream(doGetOutputStream()));
     }
 
     /**
@@ -114,38 +118,95 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public Writer getWriter() throws IOException {
+    public final Writer getWriter() throws IOException {
         return new OutputStreamWriter(getOutputStream(), StandardCharsets.UTF_8);
     }
 
     @Override
-    public Resource create() throws IOException {
-        throw new IOException("Not supported");
+    public final Resource create() throws IOException {
+        return time("create", () -> {
+            doCreate();
+            return this;
+        });
     }
 
     @Override
     public final Resource delete() throws IOException {
-        if (getType() == Type.FILE) {
-            doDelete();
-        } else {
-            for (Resource child : list()) {
-                child.delete();
+        return time("delete", () -> {
+            if (getType() == Type.FILE) {
+                doDelete();
+            } else {
+                for (Resource child : list()) {
+                    child.delete();
+                }
             }
-        }
-        return this;
+            return this;
+        });
     }
 
     @Override
-    public Resource empty() throws IOException {
-        if (getType() != Type.DIRECTORY) return this;
-        for (Resource child : list()) {
-            child.delete();
-        }
-        return this;
+    public final Collection<Resource> list() throws IOException {
+        return time("list", () -> doList());
+    }
+
+    @Override
+    public Resource copyFrom(Resource resource) {
+        return copyFrom(resource, MAX_DEPTH);
+    }
+
+    @Override
+    public Resource copyFrom(Resource resource, int depth) {
+        return null;
+    }
+
+    @Override
+    public final Resource empty() throws IOException {
+        return time("delete", () -> {
+            if (getType() != Type.DIRECTORY) return this;
+            for (Resource child : list()) {
+                child.delete();
+            }
+            return this;
+        });
+    }
+
+    @Override
+    public final long lastModified() throws IOException {
+        return time("last_modified", this::doLastModified);
+    }
+
+    @Override
+    public final long length() throws IOException {
+        return time("length", this::doLength);
+    }
+
+    @Override
+    public final boolean exists() throws IOException {
+        return time("exists", this::doExists);
     }
 
     protected void doDelete() throws IOException {
         throw new IOException("Not supported");
+    }
+
+    protected void doCreate() throws IOException {
+        throw new IOException("Not supported");
+    }
+
+    protected boolean doExists() throws IOException {
+        throw new IOException("Not supported");
+    }
+
+    protected long doLastModified() throws IOException {
+        throw new IOException("Not supported");
+    }
+
+    protected long doLength() throws IOException {
+        throw new IOException("Not supported");
+    }
+
+    protected Collection<Resource> doList() throws IOException {
+        return Collections.emptyList();
     }
 
     @Override
@@ -287,6 +348,39 @@ public abstract class AbstractResource implements Resource, Cloneable {
      */
     private final void updateChild(Resource child) {
         // empty
+    }
+
+    /**
+     * Returns the metrics to be used with this instance.
+     *
+     * @return a non-null instance
+     */
+    protected Metrics getMetrics() {
+        return METRICS;
+    }
+
+    /**
+     * Actual implementation of copy.
+     *
+     * @param resource the source resource
+     * @param depth    the current depth
+     * @return self
+     */
+    protected Resource doCopyFrom(Resource resource, int depth) {
+        return this;
+    }
+
+    /**
+     * Times a resource operation.
+     *
+     * @param name     the name
+     * @param callable the callable
+     * @param <T>      the return type
+     * @return the return value
+     */
+    protected final <T> T time(String name, Callable<T> callable) {
+        Metrics metrics = getMetrics();
+        return metrics.time(name, callable);
     }
 
     /**

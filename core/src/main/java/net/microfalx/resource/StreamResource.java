@@ -98,22 +98,22 @@ public final class StreamResource extends AbstractResource {
     }
 
     @Override
-    public boolean exists() {
+    public boolean doExists() {
         return true;
     }
 
     @Override
-    public long lastModified() {
+    protected long doLastModified() {
         return lastModified;
     }
 
     @Override
-    public long length() {
+    protected long doLength() {
         return -1;
     }
 
     @Override
-    public Collection<Resource> list() {
+    protected Collection<Resource> doList() {
         return Collections.emptyList();
     }
 

@@ -7,6 +7,8 @@ import java.util.Collection;
 /**
  * An interface for a resource descriptor that abstracts from the actual
  * type of underlying resource, such as a file or class path resource.
+ * <p>
+ * The object is immutable after creation, but it has methods to create copies and change some attributes.
  */
 public interface Resource extends Serializable {
 
@@ -64,7 +66,7 @@ public interface Resource extends Serializable {
     /**
      * Returns the file extension of this resource.
      *
-     * @return a non-null string
+     * @return a non-null string if an extension exists, null otherwise
      */
     String getFileExtension();
 
@@ -246,6 +248,27 @@ public interface Resource extends Serializable {
      * @return a non-null resource
      */
     Resource resolve(String path, Type type);
+
+    /**
+     * Copies the given resource to this resource.
+     * <p>
+     * If the source is a directory, it copies all sub-resources.
+     *
+     * @param resource the resource
+     * @return self
+     * @see #copyFrom(Resource, int)
+     */
+    Resource copyFrom(Resource resource);
+
+    /**
+     * Copies the given resource (and all sub-resources).
+     * <p>
+     * If the source is a directory, it copies all sub-resources up to a given depth.
+     *
+     * @param resource the resource
+     * @return self
+     */
+    Resource copyFrom(Resource resource, int depth);
 
     /**
      * Returns the URI representing the resource.

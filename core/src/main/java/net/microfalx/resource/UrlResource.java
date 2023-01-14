@@ -25,6 +25,7 @@ public class UrlResource extends AbstractResource {
     private static final long serialVersionUID = -2384627536253212324L;
 
     private final URL url;
+    private Metrics metrics;
 
     /**
      * Create a new resource from an URL and with a relative path to an arbitrary root.
@@ -91,7 +92,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    public boolean exists() {
+    public boolean doExists() {
         try {
             InputStream inputStream = url.openStream();
             closeQuietly(inputStream);
@@ -103,7 +104,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    public Collection<Resource> list() {
+    protected Collection<Resource> doList() {
         String urlAsString = url.toExternalForm();
         try {
             URLConnection urlConnection = url.openConnection();
@@ -187,7 +188,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    public long lastModified() {
+    protected long doLastModified() {
         long lastModified = -1;
         try {
             URLConnection urlConnection = url.openConnection();
@@ -200,7 +201,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    public long length() {
+    protected long doLength() {
         long size = -1;
         try {
             URLConnection urlConnection = url.openConnection();
@@ -221,4 +222,9 @@ public class UrlResource extends AbstractResource {
         }
     }
 
+    @Override
+    protected Metrics getMetrics() {
+        if (metrics == null) metrics = METRICS.withTag("host", url.getHost());
+        return metrics;
+    }
 }

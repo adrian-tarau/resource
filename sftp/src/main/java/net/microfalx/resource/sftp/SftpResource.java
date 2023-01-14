@@ -116,8 +116,8 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     }
 
     @Override
-    public Resource create() throws IOException {
-        if (exists()) return this;
+    public void doCreate() throws IOException {
+        if (exists()) return;
         if (getType() == Type.FILE) {
             appendStream(getWriter(), new StringReader(EMPTY_STRING));
         } else {
@@ -128,11 +128,10 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
                 return null;
             });
         }
-        return this;
     }
 
     @Override
-    public boolean exists() throws IOException {
+    public boolean doExists() throws IOException {
         try {
             return doWithChannel("exists", channel -> {
                 SftpATTRS attrs = channel.lstat(getRealPath());
@@ -144,7 +143,7 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     }
 
     @Override
-    public long lastModified() throws IOException {
+    protected long doLastModified() throws IOException {
         return doWithChannel("last_modified", channel -> {
             SftpATTRS attrs = channel.lstat(getRealPath());
             return (long) attrs.getMTime() * 1000;
@@ -152,7 +151,7 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     }
 
     @Override
-    public long length() throws IOException {
+    protected long doLength() throws IOException {
         return doWithChannel("last_modified", channel -> {
             SftpATTRS attrs = channel.lstat(getRealPath());
             return attrs.getSize();
@@ -160,7 +159,7 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     }
 
     @Override
-    public Collection<Resource> list() throws IOException {
+    protected Collection<Resource> doList() throws IOException {
         return doWithChannel("list", channel -> {
             Vector<Object> entries = channel.ls(getRealPath());
             Collection<Resource> children = new ArrayList<>(entries.size());

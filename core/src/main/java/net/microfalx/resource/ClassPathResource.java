@@ -19,6 +19,8 @@ public final class ClassPathResource extends UrlResource {
 
     private final String path;
 
+    private static Metrics metrics = METRICS.withGroup("classpath");
+
     /**
      * Create a new file resource from a resource in the class path.
      *
@@ -107,6 +109,11 @@ public final class ClassPathResource extends UrlResource {
         return false;
     }
 
+    @Override
+    protected Metrics getMetrics() {
+        return metrics;
+    }
+
     static Collection<URL> toCollection(Enumeration<URL> enumeration) {
         Collection<URL> urls = new ArrayList<>();
         while (enumeration.hasMoreElements()) {
@@ -153,12 +160,12 @@ public final class ClassPathResource extends UrlResource {
         }
 
         @Override
-        public boolean exists() {
+        public boolean doExists() {
             return true;
         }
 
         @Override
-        public long lastModified() throws IOException {
+        protected long doLastModified() throws IOException {
             long lastModified = Long.MIN_VALUE;
             for (Resource resource : resources) {
                 lastModified = Math.max(lastModified, resource.lastModified());
@@ -167,7 +174,7 @@ public final class ClassPathResource extends UrlResource {
         }
 
         @Override
-        public long length() throws IOException {
+        protected long doLength() throws IOException {
             long length = 0;
             for (Resource resource : resources) {
                 length += resource.length();
@@ -176,7 +183,7 @@ public final class ClassPathResource extends UrlResource {
         }
 
         @Override
-        public Collection<Resource> list() throws IOException {
+        protected Collection<Resource> doList() throws IOException {
             Collection<Resource> children = new ArrayList<>();
             for (Resource resource : resources) {
                 children.addAll(resource.list());

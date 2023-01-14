@@ -51,6 +51,7 @@
 
     <modules>
         <module>core</module>
+        <module>archive</module>
         <module>sftp</module>
         <module>s3</module>
     </modules>
@@ -65,13 +66,17 @@
     <properties>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>5.9.1</junit.version>
-        <assertj.version>3.23.1</assertj.version>
-        <jmh.version>1.35</jmh.version>
-        <sshd.version>2.9.1</sshd.version>
-        <aws.s3.version>1.11.60</aws.s3.version>
+        <micrometer.version>1.10.3</micrometer.version>
+        <logback.version>2.0.6</logback.version>
+        <apache.common.compress.version>1.22</apache.common.compress.version>
+        <junit.version>5.9.2</junit.version>
+        <assertj.version>3.24.1</assertj.version>
+        <mockito.version>4.6.1</mockito.version>
+        <jmh.version>1.36</jmh.version>
+        <sshd.version>2.9.2</sshd.version>
+        <aws.s3.version>1.12.385</aws.s3.version>
         <jsch.version>0.1.55</jsch.version>
-        <testcontainers.version>1.17.5</testcontainers.version>
+        <testcontainers.version>1.17.6</testcontainers.version>
     </properties>
 
     <developers>
@@ -87,6 +92,18 @@
             <!-- Runtime -->
 
             <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.jcraft</groupId>
                 <artifactId>jsch</artifactId>
                 <version>${jsch.version}</version>
@@ -96,6 +113,20 @@
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-s3</artifactId>
                 <version>${aws.s3.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-bom</artifactId>
+                <version>${micrometer.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${apache.common.compress.version}</version>
             </dependency>
 
             <!-- Tests -->
@@ -156,6 +187,17 @@
 
         <!-- Runtime -->
 
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -190,6 +232,12 @@
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
         </dependency>
 

@@ -10,6 +10,7 @@ import net.microfalx.resource.*;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 
 import static net.microfalx.resource.ResourceUtils.addEndSlash;
 import static net.microfalx.resource.ResourceUtils.requireNonNull;
@@ -89,23 +90,23 @@ public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS
     }
 
     @Override
-    public boolean exists() throws IOException {
+    public boolean doExists() throws IOException {
         return false;
     }
 
     @Override
-    public long lastModified() throws IOException {
+    protected long doLastModified() throws IOException {
         return 0;
     }
 
     @Override
-    public long length() throws IOException {
+    protected long doLength() throws IOException {
         return 0;
     }
 
     @Override
-    public Collection<Resource> list() throws IOException {
-        return null;
+    protected Collection<Resource> doList() throws IOException {
+        return Collections.emptyList();
     }
 
     @Override

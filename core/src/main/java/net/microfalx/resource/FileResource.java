@@ -134,8 +134,8 @@ public class FileResource extends AbstractResource {
     }
 
     @Override
-    public Resource create() throws IOException {
-        if (exists()) return this;
+    public void doCreate() throws IOException {
+        if (exists()) return;
         if (getType() == Type.FILE) {
             appendStream(getWriter(), new StringReader(EMPTY_STRING));
         } else {
@@ -143,7 +143,6 @@ public class FileResource extends AbstractResource {
                 throw new IOException("Directory '" + file + "' cannot be created");
             }
         }
-        return this;
     }
 
     @Override
@@ -159,22 +158,22 @@ public class FileResource extends AbstractResource {
     }
 
     @Override
-    public boolean exists() {
+    public boolean doExists() {
         return file.exists();
     }
 
     @Override
-    public long lastModified() {
+    protected long doLastModified() {
         return file.lastModified();
     }
 
     @Override
-    public long length() {
+    protected long doLength() {
         return file.length();
     }
 
     @Override
-    public Collection<Resource> list() {
+    protected Collection<Resource> doList() {
         String[] fileNames = file.list();
         if (fileNames == null) {
             return Collections.emptyList();

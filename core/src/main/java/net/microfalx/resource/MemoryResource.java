@@ -133,17 +133,17 @@ public final class MemoryResource extends AbstractResource {
     }
 
     @Override
-    public boolean exists() {
+    public boolean doExists() {
         return true;
     }
 
     @Override
-    public long lastModified() {
+    protected long doLastModified() {
         return lastModified;
     }
 
     @Override
-    public long length() {
+    protected long doLength() {
         return data.length;
     }
 
@@ -163,7 +163,7 @@ public final class MemoryResource extends AbstractResource {
     }
 
     @Override
-    public Collection<Resource> list() {
+    protected Collection<Resource> doList() {
         return Collections.emptyList();
     }
 
