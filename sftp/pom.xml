@@ -29,7 +29,7 @@
 
     <parent>
         <groupId>net.microfalx.resource</groupId>
-        <artifactId>resource-parent</artifactId>
+        <artifactId>resource</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 

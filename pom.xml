@@ -24,7 +24,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.microfalx.resource</groupId>
-    <artifactId>resource-parent</artifactId>
+    <artifactId>resource</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -36,7 +36,7 @@
 
     <name>Resource</name>
     <description>Low level resource abstraction for Java projects.</description>
-    <url>https://github.com/adrian-tarau/vresource</url>
+    <url>https://github.com/adrian-tarau/resource</url>
 
     <organization>
         <name>Adrian Tarau</name>
@@ -44,9 +44,9 @@
     </organization>
 
     <scm>
-        <connection>scm:git:https://github.com/adrian-tarau/vresource</connection>
-        <developerConnection>scm:git:https://github.com/adrian-tarau/vresource</developerConnection>
-        <url>https://github.com/adrian-tarau/vresource/tree/main</url>
+        <connection>scm:git:https://github.com/adrian-tarau/resource</connection>
+        <developerConnection>scm:git:https://github.com/adrian-tarau/resource</developerConnection>
+        <url>https://github.com/adrian-tarau/resource/tree/main</url>
     </scm>
 
     <modules>
@@ -57,7 +57,7 @@
 
     <issueManagement>
         <system>github</system>
-        <url>https://github.com/adrian-tarau/vresource/issues</url>
+        <url>https://github.com/adrian-tarau/resource/issues</url>
     </issueManagement>
 
     <inceptionYear>2022</inceptionYear>
