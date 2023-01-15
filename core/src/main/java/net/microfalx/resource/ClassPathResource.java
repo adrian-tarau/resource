@@ -1,5 +1,7 @@
 package net.microfalx.resource;
 
+import net.microfalx.metrics.Metrics;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;

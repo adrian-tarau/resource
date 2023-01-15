@@ -1,5 +1,7 @@
 package net.microfalx.resource;
 
+import net.microfalx.metrics.Metrics;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
