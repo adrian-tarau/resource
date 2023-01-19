@@ -84,17 +84,17 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    public InputStream doGetInputStream() throws IOException {
+    public final InputStream doGetInputStream(boolean raw) throws IOException {
         return url.openStream();
     }
 
     @Override
-    public String getFileName() {
+    public final String getFileName() {
         return ResourceUtils.getFileName(url.getPath());
     }
 
     @Override
-    public boolean doExists() {
+    public final boolean doExists() {
         try {
             InputStream inputStream = url.openStream();
             closeQuietly(inputStream);
@@ -106,7 +106,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    protected Collection<Resource> doList() {
+    protected final Collection<Resource> doList() {
         String urlAsString = url.toExternalForm();
         try {
             URLConnection urlConnection = url.openConnection();
@@ -167,7 +167,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    public Resource resolve(String path) {
+    public final Resource resolve(String path) {
         requireNonNull(path);
         String _url = addEndSlash(url.toExternalForm()) + path;
         try {
@@ -178,7 +178,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    public Resource resolve(String path, Type type) {
+    public final Resource resolve(String path, Type type) {
         requireNonNull(path);
         requireNonNull(type);
         String _url = addEndSlash(url.toExternalForm()) + path;
@@ -190,7 +190,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    protected long doLastModified() {
+    protected final long doLastModified() {
         long lastModified = -1;
         try {
             URLConnection urlConnection = url.openConnection();
@@ -203,7 +203,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    protected long doLength() {
+    protected final long doLength() {
         long size = -1;
         try {
             URLConnection urlConnection = url.openConnection();
@@ -216,7 +216,7 @@ public class UrlResource extends AbstractResource {
     }
 
     @Override
-    public URI toURI() {
+    public final URI toURI() {
         try {
             return url.toURI();
         } catch (URISyntaxException e) {

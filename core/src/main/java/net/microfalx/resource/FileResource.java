@@ -106,7 +106,7 @@ public class FileResource extends AbstractResource {
     }
 
     @Override
-    public Resource getParent() {
+    public final Resource getParent() {
         File parentFile = file.getParentFile();
         if (parentFile == null) {
             return null;
@@ -119,22 +119,22 @@ public class FileResource extends AbstractResource {
      *
      * @return The location of this resource on disk.
      */
-    public File getFile() {
+    public final File getFile() {
         return file;
     }
 
     @Override
-    public InputStream doGetInputStream() throws IOException {
+    public final InputStream doGetInputStream(boolean raw) throws IOException {
         return getBufferedInputStream(file);
     }
 
     @Override
-    public OutputStream doGetOutputStream() throws IOException {
+    public final OutputStream doGetOutputStream() throws IOException {
         return getBufferedOutputStream(file);
     }
 
     @Override
-    public void doCreate() throws IOException {
+    public final void doCreate() throws IOException {
         if (exists()) return;
         if (getType() == Type.FILE) {
             appendStream(getWriter(), new StringReader(EMPTY_STRING));
@@ -146,34 +146,34 @@ public class FileResource extends AbstractResource {
     }
 
     @Override
-    protected void doDelete() throws IOException {
+    protected final void doDelete() throws IOException {
         if (file.exists()) {
             Files.delete(file.toPath());
         }
     }
 
     @Override
-    public String getFileName() {
+    public final String getFileName() {
         return file.getName();
     }
 
     @Override
-    public boolean doExists() {
+    public final boolean doExists() {
         return file.exists();
     }
 
     @Override
-    protected long doLastModified() {
+    protected final long doLastModified() {
         return file.lastModified();
     }
 
     @Override
-    protected long doLength() {
+    protected final long doLength() {
         return file.length();
     }
 
     @Override
-    protected Collection<Resource> doList() {
+    protected final Collection<Resource> doList() {
         String[] fileNames = file.list();
         if (fileNames == null) {
             return Collections.emptyList();
@@ -187,14 +187,14 @@ public class FileResource extends AbstractResource {
     }
 
     @Override
-    public Resource resolve(String path) {
+    public final Resource resolve(String path) {
         requireNonNull(path);
         File child = new File(file, path);
         return FileResource.create(child);
     }
 
     @Override
-    public Resource resolve(String path, Type type) {
+    public final Resource resolve(String path, Type type) {
         requireNonNull(path);
         requireNonNull(type);
         File child = new File(file, path);
@@ -202,7 +202,7 @@ public class FileResource extends AbstractResource {
     }
 
     @Override
-    public URI toURI() {
+    public final URI toURI() {
         return file.toURI();
     }
 

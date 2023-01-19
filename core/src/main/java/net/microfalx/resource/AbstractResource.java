@@ -7,7 +7,6 @@ import java.net.URI;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -22,7 +21,8 @@ public abstract class AbstractResource implements Resource, Cloneable {
     protected static final int BUFFER_SIZE = 128 * 1024;
     protected static final int MAX_DEPTH = 128;
 
-    private final Type type;
+    private Type type;
+    private boolean typeRecalculated;
     private final String id;
 
     private String name;
@@ -43,6 +43,14 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final Type getType() {
+        if (!typeRecalculated) {
+            try {
+                type = calculateType(type);
+            } catch (IOException e) {
+                return ResourceUtils.throwException(e);
+            }
+            typeRecalculated = true;
+        }
         return type;
     }
 
@@ -91,7 +99,12 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final InputStream getInputStream() throws IOException {
-        return time("get_input", () -> getBufferedInputStream(doGetInputStream()));
+        return time("get_input", () -> getBufferedInputStream(doGetInputStream(false)));
+    }
+
+    @Override
+    public InputStream getInputStream(boolean raw) throws IOException {
+        return time("get_input", () -> getBufferedInputStream(doGetInputStream(raw)));
     }
 
     @Override
@@ -102,10 +115,11 @@ public abstract class AbstractResource implements Resource, Cloneable {
     /**
      * Subclasses will provide an input stream for this resource.
      *
+     * @param raw <code>true</code> to return the stream as is, <code>false</code> to pre-process the stream (if it applies)
      * @return a non-null instance
      * @throws IOException if I/O error occurs
      */
-    protected InputStream doGetInputStream() throws IOException {
+    protected InputStream doGetInputStream(boolean raw) throws IOException {
         throw new IOException("Not supported");
     }
 
@@ -117,6 +131,16 @@ public abstract class AbstractResource implements Resource, Cloneable {
      */
     protected OutputStream doGetOutputStream() throws IOException {
         throw new IOException("Not supported");
+    }
+
+    /**
+     * Returns a real type for a resource.
+     *
+     * @return the new type
+     * @throws IOException if I/O error occurs
+     */
+    protected Type calculateType(Type type) throws IOException {
+        return type;
     }
 
     @Override
@@ -135,39 +159,46 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public final Resource delete() throws IOException {
         return time("delete", () -> {
-            if (getType() == Type.FILE) {
-                doDelete();
-            } else {
-                for (Resource child : list()) {
-                    child.delete();
-                }
-            }
+            if (isDirectory()) empty();
+            doDelete();
             return this;
         });
     }
 
     @Override
     public final Collection<Resource> list() throws IOException {
-        return time("list", () -> doList());
+        return time("list", this::doList);
     }
 
     @Override
-    public Resource copyFrom(Resource resource) {
+    public final boolean walk(ResourceVisitor visitor) throws IOException {
+        return walk(visitor, MAX_DEPTH);
+    }
+
+    @Override
+    public final boolean walk(ResourceVisitor visitor, int maxDepth) throws IOException {
+        if (isFile()) return true;
+        return time("walk", () -> doWalk(visitor, maxDepth));
+    }
+
+    @Override
+    public final Resource copyFrom(Resource resource) {
         return copyFrom(resource, MAX_DEPTH);
     }
 
     @Override
-    public Resource copyFrom(Resource resource, int depth) {
-        return null;
+    public final Resource copyFrom(Resource resource, int depth) {
+        return time("copy", () -> doCopyFrom(resource, depth));
     }
 
     @Override
     public final Resource empty() throws IOException {
-        return time("delete", () -> {
-            if (getType() != Type.DIRECTORY) return this;
-            for (Resource child : list()) {
+        if (getType() != Type.DIRECTORY) return this;
+        return time("empty", () -> {
+            walk((parent, child, depth) -> {
                 child.delete();
-            }
+                return true;
+            });
             return this;
         });
     }
@@ -208,7 +239,15 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     protected Collection<Resource> doList() throws IOException {
-        return Collections.emptyList();
+        throw new IOException("Not supported");
+    }
+
+    protected void doCopyFrom() throws IOException {
+        throw new IOException("Not supported");
+    }
+
+    protected boolean doWalk(ResourceVisitor visitor, int maxDepth) throws IOException {
+        throw new IOException("Not supported");
     }
 
     @Override
@@ -343,8 +382,13 @@ public abstract class AbstractResource implements Resource, Cloneable {
         return result;
     }
 
+    @Override
+    public Resource toFile() {
+        throw new ResourceException("Not Supported");
+    }
+
     /**
-     * Called when a child is created to update some shared attributes between parent (this instnace) and a child.
+     * Called when a child is created to update some shared attributes between parent (this instance) and a child.
      *
      * @param child the child to be updated
      */

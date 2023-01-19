@@ -433,6 +433,17 @@ public class ResourceUtils {
     }
 
     /**
+     * Creates an input stream wrapper  that prevents the underlying input stream from being closed.
+     *
+     * @param inputStream the original input stream
+     * @return a non-null instance
+     */
+    public static InputStream getUnclosableInputStream(InputStream inputStream) {
+        if (inputStream == null) inputStream = new ByteArrayInputStream(new byte[0]);
+        return new UnclosableInputStream(inputStream);
+    }
+
+    /**
      * Copies the input stream content into the output stream. Streams
      * are automatically buffered if they do not implement BufferedInputStream/BufferedOutputStream.
      * <p>
@@ -540,5 +551,17 @@ public class ResourceUtils {
             }
         }
         return totalCopied;
+    }
+
+    static class UnclosableInputStream extends FilterInputStream {
+
+        public UnclosableInputStream(InputStream in) {
+            super(in);
+        }
+
+        @Override
+        public void close() throws IOException {
+            // do not close
+        }
     }
 }

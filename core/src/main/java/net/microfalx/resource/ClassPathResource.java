@@ -112,6 +112,18 @@ public final class ClassPathResource extends UrlResource {
     }
 
     @Override
+    public Resource toFile() {
+        URI uri = toURI();
+        String scheme = uri.getScheme();
+        if (scheme == null || "file".equalsIgnoreCase(scheme)) {
+            return FileResource.create(uri);
+        } else if ("jar".equalsIgnoreCase(scheme)) {
+
+        }
+        return super.toFile();
+    }
+
+    @Override
     protected Metrics getMetrics() {
         return metrics;
     }
@@ -157,7 +169,7 @@ public final class ClassPathResource extends UrlResource {
         }
 
         @Override
-        public InputStream doGetInputStream() {
+        public InputStream doGetInputStream(boolean raw) {
             return throwContainerException();
         }
 

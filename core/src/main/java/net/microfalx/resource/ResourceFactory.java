@@ -1,7 +1,8 @@
 package net.microfalx.resource;
 
 import java.net.URI;
-import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
@@ -13,7 +14,7 @@ public class ResourceFactory {
 
     private static Logger LOGGER = Logger.getLogger(ResourceFactory.class.getName());
 
-    private static final Collection<ResourceResolver> resolvers = new CopyOnWriteArrayList<>();
+    private static final List<ResourceResolver> resolvers = new CopyOnWriteArrayList<>();
 
     /**
      * Creates a resource from a URI.
@@ -63,5 +64,6 @@ public class ResourceFactory {
             LOGGER.fine(" - " + resolver.getClass().getName());
             resolvers.add(resolver);
         }
+        resolvers.sort(Comparator.comparingInt(ResourceResolver::getOrder).reversed());
     }
 }

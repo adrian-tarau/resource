@@ -50,6 +50,24 @@ public interface Resource extends Serializable {
     Type getType();
 
     /**
+     * Returns whether the resource is of {@link Type#FILE} type.
+     *
+     * @return <code>true</code> if it is a file, <code>false</code> otherwise
+     */
+    default boolean isFile() {
+        return getType() == Type.FILE;
+    }
+
+    /**
+     * Returns whether the resource is of {@link Type#FILE} type.
+     *
+     * @return <code>true</code> if it is a directory, <code>false</code> otherwise
+     */
+    default boolean isDirectory() {
+        return getType() == Type.DIRECTORY;
+    }
+
+    /**
      * Returns the resource's parent.
      *
      * @return a non-null instance if the resource has a parent, null otherwise
@@ -120,11 +138,25 @@ public interface Resource extends Serializable {
 
     /**
      * Returns the resource input stream.
+     * <p>
+     * The resource can pre-process the stream, like decompress or transform. If raw data is needed, use
+     * {@link #getInputStream(boolean)} and ask for <code>raw</code> bytes.
      *
      * @return a non-null stream
      * @throws IOException if an I/O error occurs
      */
-    InputStream getInputStream() throws IOException;
+    default InputStream getInputStream() throws IOException {
+        return getInputStream(false);
+    }
+
+    /**
+     * Returns the resource input stream.
+     *
+     * @param raw <code>true</code> to return the stream as is, <code>false</code> to pre-process the stream (if it applies)
+     * @return a non-null stream
+     * @throws IOException if an I/O error occurs
+     */
+    InputStream getInputStream(boolean raw) throws IOException;
 
     /**
      * Returns the resource reader, with a {@link  java.nio.charset.StandardCharsets#UTF_8} encoding
@@ -175,6 +207,9 @@ public interface Resource extends Serializable {
 
     /**
      * Deletes a resource, if exists.
+     * <p>
+     * If the resource is a file, it removes the file, otherwise it will recursively remove all
+     * children and then remove the directory.
      *
      * @return self
      * @throws IOException if an I/O error occurs
@@ -182,7 +217,9 @@ public interface Resource extends Serializable {
     Resource delete() throws IOException;
 
     /**
-     * Deletes the children, if any.
+     * Deletes the children, if the resource is a directory (it is ignored for a file).
+     * <p>
+     * It leaves the directory in place.
      *
      * @return self
      * @throws IOException if an I/O error occurs
@@ -227,10 +264,30 @@ public interface Resource extends Serializable {
 
     /**
      * Lists child resources.
+     * <p>
+     * Listing resources might be inefficient for most resources and {@link #walk} is recommended to be used to process
+     * all the children (or some of them, up to a given depth).
      *
      * @return a non-null instance
      */
     Collection<Resource> list() throws IOException;
+
+    /**
+     * Walks the children of this resource.
+     *
+     * @param visitor the callback
+     * @return <code>true</code> if the tree was walked completely, <code>false</code> if it was aborted
+     */
+    boolean walk(ResourceVisitor visitor) throws IOException;
+
+    /**
+     * Walks the children of this resource.
+     *
+     * @param callback the callback
+     * @param maxDepth the maximum depth
+     * @return <code>true</code> if the tree was walked completely, <code>false</code> if it was aborted
+     */
+    boolean walk(ResourceVisitor visitor, int maxDepth) throws IOException;
 
     /**
      * Resolves a child resource.
@@ -273,9 +330,16 @@ public interface Resource extends Serializable {
     /**
      * Returns the URI representing the resource.
      *
-     * @return a non-null
+     * @return a non-null instance
      */
     URI toURI();
+
+    /**
+     * Returns the resource representing a local file.
+     *
+     * @return a non-null instance
+     */
+    Resource toFile();
 
     /**
      * Creates a copy of the resource, with a different credential.

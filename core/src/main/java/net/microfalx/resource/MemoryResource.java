@@ -148,7 +148,7 @@ public final class MemoryResource extends AbstractResource {
     }
 
     @Override
-    public InputStream doGetInputStream() {
+    public InputStream doGetInputStream(boolean raw) {
         return new ByteArrayInputStream(data);
     }
 
