@@ -28,6 +28,13 @@ public interface ResourceResolver {
     Resource resolve(URI uri);
 
     /**
+     * Clears any caches use by provider.
+     */
+    default void clearCache() {
+        // empty on purpose
+    }
+
+    /**
      * Returns the order in which the resolver is called.
      * @return an interger
      */

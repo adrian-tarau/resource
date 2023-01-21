@@ -3,10 +3,15 @@ package net.microfalx.resource;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class FileResourceTest {
+
+    private AtomicInteger fileCount = new AtomicInteger();
+    private AtomicInteger directoryCount = new AtomicInteger();
+    private ResourceVisitor visitor = new FileVisitor();
 
     @Test
     void file() throws IOException {
@@ -35,12 +40,56 @@ class FileResourceTest {
         assertNotEquals(0, directory.lastModified());
     }
 
+    @Test
+    void walk() throws IOException {
+        Resource dir1 = fromFile("dir1");
+        dir1.walk(visitor);
+        assertCount(1, 0);
+        dir1 = dir1.getParent();
+        dir1.walk(visitor, 1);
+        assertCount(2, 4);
+        dir1.walk(visitor, 2);
+        assertCount(6, 7);
+        dir1.walk(visitor, 3);
+        assertCount(8, 8);
+        dir1.walk(visitor);
+        assertCount(14, 8);
+    }
+
+    @Test
+    void list() throws IOException {
+        Resource dir1 = fromFile("dir1");
+        assertEquals(1, dir1.list().size());
+        assertEquals(6, dir1.getParent().list().size());
+    }
+
+    private void assertCount(int fileCount, int directoryCount) {
+        assertEquals(fileCount, this.fileCount.get());
+        assertEquals(directoryCount, this.directoryCount.get());
+        this.fileCount.set(0);
+        this.directoryCount.set(0);
+    }
+
     private Resource fromFile(String path) {
         return ClassPathResource.file(path).toFile();
     }
 
     private Resource fromDirectory(String path) {
         return ClassPathResource.directory(path).toFile();
+    }
+
+    class FileVisitor implements ResourceVisitor {
+        @Override
+        public boolean onResource(Resource root, Resource child) throws IOException {
+            assertTrue(child.isFile() ? child.length() > 0 : true, child.getName());
+            assertTrue(child.lastModified() > 0, child.getName());
+            if (child.isFile()) {
+                fileCount.incrementAndGet();
+            } else {
+                directoryCount.incrementAndGet();
+            }
+            return true;
+        }
     }
 
 }

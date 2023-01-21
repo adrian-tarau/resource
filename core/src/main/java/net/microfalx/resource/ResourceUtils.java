@@ -90,18 +90,45 @@ public class ResourceUtils {
         return !isEmpty(value);
     }
 
+    /**
+     * Returns a default value if the input is null or empty.
+     *
+     * @param value        the value
+     * @param defaultValue the default value
+     * @return the original value or a default
+     */
     public static String defaultIfEmpty(String value, String defaultValue) {
         return isEmpty(value) ? defaultValue : value;
     }
 
+    /**
+     * Returns a default value if the input is null.
+     *
+     * @param value        the value
+     * @param defaultValue the default value
+     * @return the original value or a default
+     */
     public static String defaultIfNull(String value, String defaultValue) {
         return value == null ? defaultValue : value;
     }
 
+    /**
+     * Returns whether the URL points to a local file.
+     *
+     * @param url the URL
+     * @return <code>true</code> if a local file, <code>false</code> otherwise
+     */
     public static boolean isFileUrl(URL url) {
         return url.getProtocol() == null || "file".equalsIgnoreCase(url.getProtocol());
     }
 
+    /**
+     * Splits a string using a list of delimiters.
+     *
+     * @param string the string
+     * @param delims the delimiters
+     * @return a non-null instance
+     */
     public static String[] split(String string, String delims) {
         if (string == null) return EMPTY_STRING_ARRAY;
         StringTokenizer st = new StringTokenizer(string, delims, false);
@@ -441,6 +468,18 @@ public class ResourceUtils {
     public static InputStream getUnclosableInputStream(InputStream inputStream) {
         if (inputStream == null) inputStream = new ByteArrayInputStream(new byte[0]);
         return new UnclosableInputStream(inputStream);
+    }
+
+    /**
+     * Returns the depth of a resource based on the number of sub-directory.
+     *
+     * @param path the path
+     * @return the depth
+     */
+    public static int getDepth(String path) {
+        if (path == null) return 0;
+        path = path.replace('\\', '/');
+        return split(path, "/").length;
     }
 
     /**

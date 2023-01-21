@@ -9,13 +9,12 @@ import java.io.IOException;
 public interface ResourceVisitor {
 
     /**
-     * invoked for each child resource.
+     * Invoked for each child resource, at any depth.
      *
-     * @param parent the parent resource
-     * @param child  the child resource
-     * @param depth  the depth
+     * @param root  the root (starting) resource
+     * @param child the child resource
      * @return <code>true</code> to continue the walk
-     * @throws IOException
+     * @throws IOException if an I/O error occurs
      */
-    boolean onResource(Resource parent, Resource child, int depth) throws IOException;
+    boolean onResource(Resource root, Resource child) throws IOException;
 }

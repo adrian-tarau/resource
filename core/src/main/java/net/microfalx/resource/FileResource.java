@@ -2,10 +2,14 @@ package net.microfalx.resource;
 
 import java.io.*;
 import java.net.URI;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 import static net.microfalx.resource.ResourceUtils.*;
 
@@ -150,6 +154,25 @@ public class FileResource extends AbstractResource {
         if (file.exists()) {
             Files.delete(file.toPath());
         }
+    }
+
+    @Override
+    protected boolean doWalk(ResourceVisitor visitor, int maxDepth) throws IOException {
+        Path rootPath = file.toPath();
+        Stream<Path> walk = Files.walk(rootPath, maxDepth, FileVisitOption.FOLLOW_LINKS);
+        AtomicBoolean shouldContinue = new AtomicBoolean(true);
+        walk.forEach(path -> {
+            boolean same = path.equals(rootPath);
+            if (!same && shouldContinue.get()) {
+                File child = path.toFile();
+                try {
+                    shouldContinue.set(visitor.onResource(this, child.isFile() ? FileResource.file(child) : FileResource.directory(child)));
+                } catch (IOException e) {
+                    ResourceUtils.throwException(e);
+                }
+            }
+        });
+        return shouldContinue.get();
     }
 
     @Override

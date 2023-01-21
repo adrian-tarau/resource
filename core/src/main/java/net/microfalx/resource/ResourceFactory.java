@@ -54,6 +54,15 @@ public class ResourceFactory {
     }
 
     /**
+     * Clears any caches use by providers.
+     */
+    public static void clearCache() {
+        for (ResourceResolver resolver : resolvers) {
+            resolver.clearCache();
+        }
+    }
+
+    /**
      * Initializes the providers
      */
     private static void initialize() {

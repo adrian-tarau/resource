@@ -6,9 +6,7 @@ import java.io.*;
 import java.net.URI;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static net.microfalx.resource.ResourceUtils.*;
@@ -195,7 +193,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     public final Resource empty() throws IOException {
         if (getType() != Type.DIRECTORY) return this;
         return time("empty", () -> {
-            walk((parent, child, depth) -> {
+            walk((parent, child) -> {
                 child.delete();
                 return true;
             });
@@ -239,7 +237,9 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     protected Collection<Resource> doList() throws IOException {
-        throw new IOException("Not supported");
+        Collection<Resource> children = new ArrayList<>();
+        walk((parent, child) -> children.add(child), 1);
+        return Collections.unmodifiableCollection(children);
     }
 
     protected void doCopyFrom() throws IOException {
