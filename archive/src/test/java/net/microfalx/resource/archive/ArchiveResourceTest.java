@@ -36,7 +36,7 @@ class ArchiveResourceTest {
     @Test
     void walkCompressed() throws IOException {
         AtomicInteger counter = new AtomicInteger();
-        fromFile("file1.txt.bz2").walk((parent, child, depth) -> {
+        fromFile("file1.txt.bz2").walk((parent, child) -> {
             counter.incrementAndGet();
             return true;
         });
@@ -44,15 +44,26 @@ class ArchiveResourceTest {
     }
 
     @Test
+    void list() throws IOException {
+        assertEquals(5, fromFile("sample.zip").list().size());
+    }
+
+    @Test
     void walkArchive() throws IOException {
-        AtomicInteger counter = new AtomicInteger();
-        fromFile("sample.zip").walk((parent, child, depth) -> {
-            assertTrue(child.length() > 0);
+        AtomicInteger fileCount = new AtomicInteger();
+        AtomicInteger directoryCount = new AtomicInteger();
+        fromFile("sample.zip").walk((parent, child) -> {
+            assertTrue(child.isFile() ? child.length() > 0 : child.length() == 0);
             assertTrue(child.lastModified() > 0);
-            counter.incrementAndGet();
+            if (child.isFile()) {
+                fileCount.incrementAndGet();
+            } else {
+                directoryCount.incrementAndGet();
+            }
             return true;
         });
-        assertEquals(0, counter.get());
+        assertEquals(11, fileCount.get());
+        assertEquals(4, directoryCount.get());
     }
 
     private ArchiveResource fromFile(String path) {

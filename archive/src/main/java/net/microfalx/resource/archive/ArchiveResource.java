@@ -150,12 +150,14 @@ public final class ArchiveResource extends AbstractResource {
             for (; ; ) {
                 ArchiveEntry entry = stream.getNextEntry();
                 if (entry == null) break;
-                int depth = 1;
-                ArchiveEntryResource entryResource = new ArchiveEntryResource(this.resource.getId() + ":" + entry.getName(), stream, entry);
-                boolean shouldContinue = visitor.onResource(this, entryResource, depth);
-                if (!shouldContinue) {
-                    completed = false;
-                    break;
+                int depth = ResourceUtils.getDepth(entry.getName());
+                if (depth <= maxDepth) {
+                    ArchiveEntryResource entryResource = new ArchiveEntryResource(this.resource.getId() + ":" + entry.getName(), stream, entry);
+                    boolean shouldContinue = visitor.onResource(this, entryResource);
+                    if (!shouldContinue) {
+                        completed = false;
+                        break;
+                    }
                 }
             }
             return completed;
@@ -179,7 +181,7 @@ public final class ArchiveResource extends AbstractResource {
     }
 
     private Type detect() {
-        String type = null;
+        String type;
         try {
             InputStream inputStream = resource.getInputStream();
             inputStream.mark(100);
@@ -212,7 +214,7 @@ public final class ArchiveResource extends AbstractResource {
 
         @Override
         public String getFileName() {
-            return entry.getName();
+            return ResourceUtils.removeEndSlash(entry.getName());
         }
 
         @Override
