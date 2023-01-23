@@ -92,7 +92,7 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     }
 
     @Override
-    public InputStream doGetInputStream() throws IOException {
+    public InputStream doGetInputStream(boolean raw) throws IOException {
         Session session = createSession();
         ChannelSftp channel = createChannel(session);
         try {
