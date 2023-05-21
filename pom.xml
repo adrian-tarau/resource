@@ -66,17 +66,20 @@
     <properties>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Runtime -->
+        <logback.version>2.0.7</logback.version>
         <meters.version>1.0.0-SNAPSHOT</meters.version>
-        <logback.version>2.0.6</logback.version>
         <apache.common.compress.version>1.22</apache.common.compress.version>
-        <junit.version>5.9.2</junit.version>
-        <assertj.version>3.24.1</assertj.version>
-        <mockito.version>4.6.1</mockito.version>
-        <jmh.version>1.36</jmh.version>
         <sshd.version>2.9.2</sshd.version>
         <aws.s3.version>1.12.385</aws.s3.version>
         <jsch.version>0.1.55</jsch.version>
-        <testcontainers.version>1.17.6</testcontainers.version>
+        <!-- Tests -->
+        <junit.version>5.9.1</junit.version>
+        <assertj.version>3.24.2</assertj.version>
+        <mockito.version>5.3.1</mockito.version>
+        <jmh.version>1.36</jmh.version>
+        <awaitility.version>4.2.0</awaitility.version>
+        <testcontainers.version>1.18.1</testcontainers.version>
     </properties>
 
     <developers>
@@ -165,6 +168,12 @@
                 <groupId>org.testcontainers</groupId>
                 <artifactId>junit-jupiter</artifactId>
                 <version>${testcontainers.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${awaitility.version}</version>
             </dependency>
 
             <dependency>
