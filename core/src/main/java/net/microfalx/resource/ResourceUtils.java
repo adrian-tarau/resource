@@ -113,6 +113,17 @@ public class ResourceUtils {
     }
 
     /**
+     * Returns a default value if the input is null.
+     *
+     * @param value        the value
+     * @param defaultValue the default value
+     * @return the original value or a default
+     */
+    public static <T> T defaultIfNull(T value, T defaultValue) {
+        return value == null ? defaultValue : value;
+    }
+
+    /**
      * Returns whether the URL points to a local file.
      *
      * @param url the URL
