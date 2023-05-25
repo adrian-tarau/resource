@@ -14,6 +14,7 @@ class ResourceFactoryTest {
         assertSame(FileResource.class, resource.getClass());
         resource = ResourceFactory.resolve(URI.create("file:/tmp/file"));
         assertSame(FileResource.class, resource.getClass());
+        ResourceFactory.resolve(System.getProperty("user.home"));
     }
 
     @Test

@@ -7,6 +7,9 @@ import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
+import static net.microfalx.resource.ResourceUtils.requireNonNull;
+import static net.microfalx.resource.ResourceUtils.toUri;
+
 /**
  * A factory used to create resources.
  */
@@ -15,6 +18,18 @@ public class ResourceFactory {
     private static Logger LOGGER = Logger.getLogger(ResourceFactory.class.getName());
 
     private static final List<ResourceResolver> resolvers = new CopyOnWriteArrayList<>();
+
+    /**
+     * Creates a resource from a URI.
+     * <p>
+     * If a provider does not exist, it will return a "NULL" resource.
+     *
+     * @param uri the URI in string form
+     * @return a non-null instance
+     */
+    public static Resource resolve(String uri) {
+        return resolve(uri, null);
+    }
 
     /**
      * Creates a resource from a URI.
@@ -33,12 +48,26 @@ public class ResourceFactory {
      * <p>
      * If a provider does not exist, it will return a "NULL" resource.
      *
+     * @param uri        the URI in string form
+     * @param credential the credential, can be NULL
+     * @return a non-null instance
+     */
+    public static Resource resolve(String uri, Credential credential) {
+        requireNonNull(uri);
+        return resolve(toUri(uri), credential);
+    }
+
+    /**
+     * Creates a resource from a URI.
+     * <p>
+     * If a provider does not exist, it will return a "NULL" resource.
+     *
      * @param uri        the URI
      * @param credential the credential, can be NULL
      * @return a non-null instance
      */
     public static Resource resolve(URI uri, Credential credential) {
-        ResourceUtils.requireNonNull(uri);
+        requireNonNull(uri);
         if (credential == null) credential = new NullCredential();
         initialize();
         for (ResourceResolver resolver : resolvers) {

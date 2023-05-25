@@ -4,6 +4,7 @@ import net.microfalx.metrics.Metrics;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -131,6 +132,22 @@ public class ResourceUtils {
      */
     public static boolean isFileUrl(URL url) {
         return url.getProtocol() == null || "file".equalsIgnoreCase(url.getProtocol());
+    }
+
+    /**
+     * Returns an URI from its string representation.
+     * <p>
+     * It handles Windows path formats
+     *
+     * @param uri the URI
+     * @return the URI
+     */
+    public static URI toUri(String uri) {
+        if (isEmpty(uri)) return null;
+        if (uri.length() > 2 && Character.isAlphabetic(uri.charAt(0)) && uri.charAt(1) == ':') {
+            uri = "file:///" + uri.replace('\\', '/');
+        }
+        return URI.create(uri);
     }
 
     /**
