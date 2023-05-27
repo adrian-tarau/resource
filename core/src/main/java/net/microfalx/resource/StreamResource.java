@@ -9,8 +9,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
-import static net.microfalx.resource.ResourceUtils.isEmpty;
-import static net.microfalx.resource.ResourceUtils.requireNonNull;
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.StringUtils.isEmpty;
 
 /**
  * A resource based on an {@link InputStream}.
@@ -61,9 +61,7 @@ public final class StreamResource extends AbstractResource {
         requireNonNull(fileName);
 
         String id = UUID.randomUUID().toString();
-        if (isEmpty(fileName)) {
-            fileName = id;
-        }
+        if (isEmpty(fileName)) fileName = id;
         return new StreamResource(inputStream, id, fileName, uri);
     }
 

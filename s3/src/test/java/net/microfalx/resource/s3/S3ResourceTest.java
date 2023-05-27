@@ -8,8 +8,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.net.URI;
 
-import static net.microfalx.resource.ResourceUtils.addStartSlash;
-import static net.microfalx.resource.ResourceUtils.removeStartSlash;
+import static net.microfalx.lang.StringUtils.addStartSlash;
+import static net.microfalx.lang.StringUtils.removeStartSlash;
 
 /**
  * It needs docker. Docker in WSL2 cannot be accessed.

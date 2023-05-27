@@ -3,8 +3,8 @@ package net.microfalx.resource;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.resource.ResourceUtils.hash;
-import static net.microfalx.resource.ResourceUtils.requireNonNull;
 
 public class TemporaryFileResource extends FileResource {
 

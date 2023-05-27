@@ -5,6 +5,7 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
+import net.microfalx.lang.FileUtils;
 import net.microfalx.resource.*;
 
 import java.io.IOException;
@@ -12,8 +13,8 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 
-import static net.microfalx.resource.ResourceUtils.addEndSlash;
-import static net.microfalx.resource.ResourceUtils.requireNonNull;
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.StringUtils.addEndSlash;
 
 public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS3Client> {
 
@@ -86,7 +87,7 @@ public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS
 
     @Override
     public String getFileName() {
-        return ResourceUtils.getFileName(uri.getPath());
+        return FileUtils.getFileName(uri.getPath());
     }
 
     @Override

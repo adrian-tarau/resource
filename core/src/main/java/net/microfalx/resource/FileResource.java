@@ -11,7 +11,12 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
-import static net.microfalx.resource.ResourceUtils.*;
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.ExceptionUtils.throwException;
+import static net.microfalx.lang.IOUtils.*;
+import static net.microfalx.lang.StringUtils.EMPTY_STRING;
+import static net.microfalx.resource.ResourceUtils.FILE_SCHEME;
+import static net.microfalx.resource.ResourceUtils.hash;
 
 /**
  * A resource implementation on top of a {@link File} reference.
@@ -168,7 +173,7 @@ public class FileResource extends AbstractResource {
                 try {
                     shouldContinue.set(visitor.onResource(this, child.isFile() ? FileResource.file(child) : FileResource.directory(child)));
                 } catch (IOException e) {
-                    ResourceUtils.throwException(e);
+                    throwException(e);
                 }
             }
         });

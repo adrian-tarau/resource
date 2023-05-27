@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static net.microfalx.resource.ResourceUtils.getInputStreamAsBytes;
+import static net.microfalx.lang.IOUtils.getInputStreamAsBytes;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UrlResourceTest {

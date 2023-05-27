@@ -1,6 +1,7 @@
 package net.microfalx.resource.sftp;
 
 import com.jcraft.jsch.*;
+import net.microfalx.lang.FileUtils;
 import net.microfalx.resource.*;
 
 import java.io.*;
@@ -10,7 +11,9 @@ import java.util.Collection;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import static net.microfalx.resource.ResourceUtils.*;
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.IOUtils.appendStream;
+import static net.microfalx.lang.StringUtils.*;
 
 /**
  * A resource for a SFTP resource.
@@ -88,7 +91,7 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
 
     @Override
     public String getFileName() {
-        return ResourceUtils.getFileName(uri.getPath());
+        return FileUtils.getFileName(uri.getPath());
     }
 
     @Override

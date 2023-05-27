@@ -1,5 +1,6 @@
 package net.microfalx.resource;
 
+import net.microfalx.lang.FileUtils;
 import net.microfalx.metrics.Metrics;
 
 import java.io.IOException;
@@ -9,6 +10,9 @@ import java.net.URL;
 import java.util.*;
 import java.util.logging.Logger;
 
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.FileUtils.getParentPath;
+import static net.microfalx.lang.StringUtils.*;
 import static net.microfalx.resource.ResourceUtils.*;
 
 /**
@@ -165,7 +169,7 @@ public final class ClassPathResource extends UrlResource {
 
         @Override
         public String getFileName() {
-            return ResourceUtils.getFileName(path);
+            return FileUtils.getFileName(path);
         }
 
         @Override

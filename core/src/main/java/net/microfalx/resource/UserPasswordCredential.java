@@ -1,6 +1,6 @@
 package net.microfalx.resource;
 
-import static net.microfalx.resource.ResourceUtils.*;
+import static net.microfalx.lang.StringUtils.*;
 
 public class UserPasswordCredential implements UserAwareCredential {
 

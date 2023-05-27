@@ -1,5 +1,6 @@
 package net.microfalx.resource;
 
+import net.microfalx.lang.FileUtils;
 import net.microfalx.metrics.Metrics;
 
 import java.io.*;
@@ -9,7 +10,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-import static net.microfalx.resource.ResourceUtils.*;
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.ExceptionUtils.throwException;
+import static net.microfalx.lang.IOUtils.*;
+import static net.microfalx.lang.StringUtils.*;
+import static net.microfalx.resource.ResourceUtils.METRICS;
 
 /**
  * A skeleton implementation for a resource.
@@ -45,7 +50,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
             try {
                 type = calculateType(type);
             } catch (IOException e) {
-                return ResourceUtils.throwException(e);
+                return throwException(e);
             }
             typeRecalculated = true;
         }
@@ -361,7 +366,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final String getFileExtension() {
-        return ResourceUtils.getFileExtension(getFileName());
+        return FileUtils.getFileExtension(getFileName());
     }
 
     @Override

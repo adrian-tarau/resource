@@ -18,7 +18,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static net.microfalx.resource.ResourceUtils.requireNonNull;
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.ExceptionUtils.throwException;
+import static net.microfalx.lang.IOUtils.getUnclosableInputStream;
+import static net.microfalx.lang.StringUtils.removeEndSlash;
 
 /**
  * A resource implementation on top of Apache Common Compress.
@@ -192,7 +195,7 @@ public final class ArchiveResource extends AbstractResource {
                 type = ArchiveStreamFactory.detect(inputStream);
             }
         } catch (Exception e) {
-            return ResourceUtils.throwException(e);
+            return throwException(e);
         }
         Type discoveredType = libTypeToType.get(type);
         if (discoveredType == null) throw new ResolutionException("Unknown archive type for " + toURI());
@@ -214,7 +217,7 @@ public final class ArchiveResource extends AbstractResource {
 
         @Override
         public String getFileName() {
-            return ResourceUtils.removeEndSlash(entry.getName());
+            return removeEndSlash(entry.getName());
         }
 
         @Override
@@ -236,7 +239,7 @@ public final class ArchiveResource extends AbstractResource {
         public InputStream getInputStream(boolean raw) throws IOException {
             if (read.compareAndSet(false, true)) throw new ResourceException("The stream for entry '"
                     + entry.getName() + "' was already processed");
-            return ResourceUtils.getUnclosableInputStream(stream);
+            return getUnclosableInputStream(stream);
         }
 
         @Override

@@ -68,6 +68,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Runtime -->
         <logback.version>2.0.7</logback.version>
+        <lang.version>1.0.0-SNAPSHOT</lang.version>
         <meters.version>1.0.0-SNAPSHOT</meters.version>
         <apache.common.compress.version>1.22</apache.common.compress.version>
         <sshd.version>2.9.2</sshd.version>
@@ -122,6 +123,12 @@
                 <groupId>net.microfalx.metrics</groupId>
                 <artifactId>metrics</artifactId>
                 <version>${meters.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.microfalx.lang</groupId>
+                <artifactId>lang</artifactId>
+                <version>${lang.version}</version>
             </dependency>
 
             <dependency>
@@ -202,6 +209,11 @@
         <dependency>
             <groupId>net.microfalx.metrics</groupId>
             <artifactId>metrics</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.microfalx.lang</groupId>
+            <artifactId>lang</artifactId>
         </dependency>
 
         <!-- Tests -->

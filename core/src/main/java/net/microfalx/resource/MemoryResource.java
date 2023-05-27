@@ -8,8 +8,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
-import static net.microfalx.resource.ResourceUtils.getInputStreamAsBytes;
-import static net.microfalx.resource.ResourceUtils.requireNonNull;
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.IOUtils.getInputStreamAsBytes;
 
 /**
  * A resource which is stored in memory.
@@ -44,7 +44,6 @@ public final class MemoryResource extends AbstractResource {
      */
     public static Resource create(String text) {
         requireNonNull(text);
-
         return create(text.getBytes());
     }
 

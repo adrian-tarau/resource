@@ -7,7 +7,7 @@ import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
-import static net.microfalx.resource.ResourceUtils.requireNonNull;
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.resource.ResourceUtils.toUri;
 
 /**

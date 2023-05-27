@@ -1,5 +1,7 @@
 package net.microfalx.resource;
 
+import net.microfalx.lang.FileUtils;
+import net.microfalx.lang.ObjectUtils;
 import net.microfalx.metrics.Metrics;
 
 import java.io.File;
@@ -15,6 +17,10 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.FileUtils.getParentPath;
+import static net.microfalx.lang.IOUtils.closeQuietly;
+import static net.microfalx.lang.StringUtils.*;
 import static net.microfalx.resource.ResourceUtils.*;
 
 /**
@@ -72,9 +78,7 @@ public class UrlResource extends AbstractResource {
     public Resource getParent() {
         String path = url.getPath();
         path = getParentPath(path);
-        if (isEmpty(path)) {
-            return null;
-        }
+        if (isEmpty(path)) return null;
         try {
             URL _url = new URL(url.getProtocol(), url.getHost(), url.getPort(), path);
             return UrlResource.create(_url);
@@ -90,7 +94,7 @@ public class UrlResource extends AbstractResource {
 
     @Override
     public final String getFileName() {
-        return ResourceUtils.getFileName(url.getPath());
+        return FileUtils.getFileName(url.getPath());
     }
 
     @Override
@@ -122,10 +126,7 @@ public class UrlResource extends AbstractResource {
                 while (entries.hasMoreElements()) {
                     JarEntry jarEntry = entries.nextElement();
                     String name = jarEntry.getName();
-                    Type type = Type.FILE;
-                    if (jarEntry.isDirectory()) {
-                        type = Type.DIRECTORY;
-                    }
+                    Type type = jarEntry.isDirectory() ? Type.DIRECTORY : Type.FILE;
                     name = removeEndSlash(name);
                     int nameDepth = split(name, "/").length;
                     if (name.startsWith(rootName) && !name.equals(rootName) && (nameDepth == rootNameDepth + 1)) {
@@ -140,16 +141,11 @@ public class UrlResource extends AbstractResource {
             } else if (isFileUrl(url)) {
                 File file = new File(url.getPath());
                 File[] children = file.listFiles();
-                if (isEmpty(children)) {
-                    return Collections.emptyList();
-                }
+                if (ObjectUtils.isEmpty(children)) return Collections.emptyList();
                 urlAsString = addEndSlash(urlAsString);
                 Collection<Resource> resources = new ArrayList<>();
                 for (File child : children) {
-                    Type type = Type.FILE;
-                    if (child.isDirectory()) {
-                        type = Type.DIRECTORY;
-                    }
+                    Type type = child.isDirectory() ? type = Type.DIRECTORY : Type.FILE;
                     URL childUrl = new URL(urlAsString + child.getName());
                     resources.add(UrlResource.create(childUrl, type));
                 }

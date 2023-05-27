@@ -2,7 +2,7 @@ package net.microfalx.resource.s3;
 
 import java.net.URI;
 
-import static net.microfalx.resource.ResourceUtils.requireNonNull;
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 
 public class S3Utilities {
 

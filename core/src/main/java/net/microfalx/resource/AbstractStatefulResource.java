@@ -3,7 +3,7 @@ package net.microfalx.resource;
 import java.io.*;
 import java.util.logging.Logger;
 
-import static net.microfalx.resource.ResourceUtils.requireNonNull;
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 
 /**
  * A skeleton implementation for a resource which keeps a state (like a connection to a remote resource).

@@ -1,6 +1,9 @@
 package net.microfalx.resource.sftp;
 
-import net.microfalx.resource.*;
+import net.microfalx.resource.Credential;
+import net.microfalx.resource.Resource;
+import net.microfalx.resource.StatefulResource;
+import net.microfalx.resource.UserPasswordCredential;
 import org.apache.sshd.common.config.keys.KeyUtils;
 import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory;
 import org.apache.sshd.common.keyprovider.KeyPairProvider;
@@ -21,7 +24,9 @@ import java.io.StringReader;
 import java.net.URI;
 import java.util.Collections;
 
-import static net.microfalx.resource.ResourceUtils.isNotEmpty;
+import static net.microfalx.lang.IOUtils.appendStream;
+import static net.microfalx.lang.IOUtils.getInputStreamAsBytes;
+import static net.microfalx.lang.StringUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SftpResourceTest {
@@ -55,7 +60,7 @@ class SftpResourceTest {
     void getInputStreamWithMissingFile() throws IOException {
         Resource resource = SftpResource.create(createUri("missing.txt"), getCredential());
         assertThrows(FileNotFoundException.class, () -> {
-            ResourceUtils.getInputStreamAsBytes(resource.getInputStream());
+            getInputStreamAsBytes(resource.getInputStream());
         });
     }
 
@@ -79,7 +84,7 @@ class SftpResourceTest {
     void lastModified() throws IOException {
         Resource resource = SftpResource.create(createUri("missing.txt"), getCredential());
         assertThrows(FileNotFoundException.class, () -> {
-            ResourceUtils.getInputStreamAsBytes(resource.getInputStream());
+            getInputStreamAsBytes(resource.getInputStream());
         });
         createFile("file.txt");
         Resource resource2 = SftpResource.create(createUri("file.txt"), getCredential());
@@ -90,7 +95,7 @@ class SftpResourceTest {
     void length() throws IOException {
         Resource resource = SftpResource.create(createUri("missing.txt"), getCredential());
         assertThrows(FileNotFoundException.class, () -> {
-            ResourceUtils.getInputStreamAsBytes(resource.getInputStream());
+            getInputStreamAsBytes(resource.getInputStream());
         });
         createFile("file.txt");
         Resource resource2 = SftpResource.create(createUri("file.txt"), getCredential());
@@ -106,12 +111,12 @@ class SftpResourceTest {
 
     private void createFile(String fileName) throws IOException {
         try (StatefulResource resource = SftpResource.create(createUri(fileName), getCredential())) {
-            ResourceUtils.appendStream(resource.getWriter(), new StringReader("test"));
+            appendStream(resource.getWriter(), new StringReader("test"));
         }
     }
 
     private URI createUri(String path) {
-        path = ResourceUtils.removeStartSlash(path);
+        path = removeStartSlash(path);
         return URI.create("sftp://localhost:" + sshServer.getPort() + "/" + path);
     }
 
@@ -159,9 +164,7 @@ class SftpResourceTest {
 
     private static File getTarget(String dirName, boolean directory) {
         String userDir = System.getProperty("user.dir");
-        if (ResourceUtils.isEmpty(userDir)) {
-            userDir = "/tmp";
-        }
+        if (isEmpty(userDir)) userDir = "/tmp";
         File dir = new File(new File(new File(userDir), "target"), dirName);
         if (directory) dir.mkdirs();
         return dir;
