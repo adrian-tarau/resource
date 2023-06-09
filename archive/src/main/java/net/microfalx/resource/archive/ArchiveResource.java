@@ -124,10 +124,10 @@ public final class ArchiveResource extends AbstractResource {
         Type archiveType = getArchiveType();
         if (!archiveType.isContainer() && !raw) {
             try {
-                CompressorInputStream compressorInputStream = new CompressorStreamFactory().createCompressorInputStream(resource.getInputStream());
+                CompressorInputStream compressorInputStream = new CompressorStreamFactory().createCompressorInputStream(resource.getInputStream(true));
                 return new BufferedInputStream(compressorInputStream, BUFFER_SIZE);
             } catch (CompressorException e) {
-                throw new IOException(e.getMessage(), e);
+                throw new ResourceException(e.getMessage(), e);
             }
         } else {
             return resource.getInputStream();
@@ -145,7 +145,7 @@ public final class ArchiveResource extends AbstractResource {
         if (archiveType.isContainer()) {
             ArchiveInputStream stream;
             try {
-                stream = new ArchiveStreamFactory().createArchiveInputStream(resource.getInputStream());
+                stream = new ArchiveStreamFactory().createArchiveInputStream(resource.getInputStream(true));
             } catch (ArchiveException e) {
                 throw new ResourceException("Failed to open archive '" + resource.toURI() + "'");
             }
@@ -186,7 +186,7 @@ public final class ArchiveResource extends AbstractResource {
     private Type detect() {
         String type;
         try {
-            InputStream inputStream = resource.getInputStream();
+            InputStream inputStream = resource.getInputStream(true);
             inputStream.mark(100);
             try {
                 type = CompressorStreamFactory.detect(inputStream);

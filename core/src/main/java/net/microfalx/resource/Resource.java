@@ -114,17 +114,39 @@ public interface Resource extends Serializable {
 
     /**
      * Loads this resource as a string.
+     * <p>
+     * The resource can pre-process the stream, like decompress or transform. If raw data is needed, use
+     * * {@link #loadAsString(boolean)} and ask for <code>raw</code> bytes.
      *
      * @return The string contents of the resource.
      */
     String loadAsString() throws IOException;
 
     /**
+     * Loads this resource as a string.
+     *
+     * @param raw <code>true</code> to return the stream as is, <code>false</code> to pre-process the stream (if it applies)
+     * @return The string contents of the resource.
+     */
+    String loadAsString(boolean raw) throws IOException;
+
+    /**
      * Loads this resource as a byte array.
+     * <p>
+     * The resource can pre-process the stream, like decompress or transform. If raw data is needed, use
+     * * {@link #loadAsBytes(boolean)} and ask for <code>raw</code> bytes.
      *
      * @return The contents of the resource.
      */
     byte[] loadAsBytes() throws IOException;
+
+    /**
+     * Loads this resource as a byte array.
+     *
+     * @param raw <code>true</code> to return the stream as is, <code>false</code> to pre-process the stream (if it applies)
+     * @return The contents of the resource.
+     */
+    byte[] loadAsBytes(boolean raw) throws IOException;
 
     /**
      * Returns whether the resource can be read.

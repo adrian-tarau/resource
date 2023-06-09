@@ -102,12 +102,12 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final InputStream getInputStream() throws IOException {
-        return time("get_input", () -> getBufferedInputStream(doGetInputStream(false)));
+        return getInputStream(false);
     }
 
     @Override
     public InputStream getInputStream(boolean raw) throws IOException {
-        return time("get_input", () -> getBufferedInputStream(doGetInputStream(raw)));
+        return time("get_input", () -> getBufferedInputStream(process(doGetInputStream(raw), raw)));
     }
 
     @Override
@@ -360,7 +360,17 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
+    public String loadAsString(boolean raw) throws IOException {
+        return getInputStreamAsString(getInputStream(raw));
+    }
+
+    @Override
     public final byte[] loadAsBytes() throws IOException {
+        return getInputStreamAsBytes(getInputStream());
+    }
+
+    @Override
+    public byte[] loadAsBytes(boolean raw) throws IOException {
         return getInputStreamAsBytes(getInputStream());
     }
 
@@ -466,6 +476,18 @@ public abstract class AbstractResource implements Resource, Cloneable {
         return currentValue;
     }
 
+    /**
+     * Invokes the processors if the content is not raw.
+     *
+     * @param inputStream the input stream
+     * @param raw         {@code true} to ask for raw value, {@code false} otherwise
+     * @return an processed stream or the original
+     */
+    private InputStream process(InputStream inputStream, boolean raw) {
+        if (raw) return inputStream;
+        return ResourceFactory.process(this, inputStream);
+    }
+
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
@@ -474,5 +496,9 @@ public abstract class AbstractResource implements Resource, Cloneable {
                 ", name='" + getName() + '\'' +
                 ", credential=" + getCredential() +
                 '}';
+    }
+
+    static {
+        ResourceFactory.initialize();
     }
 }

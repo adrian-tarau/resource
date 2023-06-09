@@ -25,7 +25,6 @@ public class ArchiveResourceResolver implements ResourceResolver {
         } finally {
             FORWARD.remove();
         }
-
     }
 
     @Override
