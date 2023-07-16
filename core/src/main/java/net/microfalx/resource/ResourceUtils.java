@@ -20,6 +20,7 @@ public class ResourceUtils {
     public static final String FILE_SCHEME = "file";
     public static final String HTTP_SCHEME = "http";
     public static final String HTTPS_SCHEME = "https";
+    public static final String SHARED = "shared";
 
     /**
      * Holds all metrics related to resource

@@ -236,7 +236,7 @@ public final class ArchiveResource extends AbstractResource {
         }
 
         @Override
-        public InputStream getInputStream(boolean raw) throws IOException {
+        public InputStream doGetInputStream(boolean raw) throws IOException {
             if (read.compareAndSet(false, true)) throw new ResourceException("The stream for entry '"
                     + entry.getName() + "' was already processed");
             return getUnclosableInputStream(stream);

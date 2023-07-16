@@ -53,7 +53,7 @@ class UrlResourceTest {
         Resource resource = ClassPathResource.file("dir1/file11.txt");
         assertEquals(0, resource.list().size());
         resource = ClassPathResource.directory("dir3");
-        assertEquals(2, resource.list().size());
+        assertEquals(3, resource.list().size());
     }
 
     @Test

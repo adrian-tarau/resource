@@ -270,11 +270,13 @@ public interface Resource extends Serializable {
     long length() throws IOException;
 
     /**
-     * Returns the content type (mimetype) based on the file name extension.
+     * Returns the mime type (content type) based on the file name extension.
+     * <p>
+     * The mime type can be changed with {@link #withMimeType(String)}.
      *
      * @return the content type
      */
-    String getContentType();
+    String getMimeType();
 
     /**
      * Returns an attribute associated with the resource.
@@ -305,7 +307,7 @@ public interface Resource extends Serializable {
     /**
      * Walks the children of this resource.
      *
-     * @param callback the callback
+     * @param visitor  the callback
      * @param maxDepth the maximum depth
      * @return <code>true</code> if the tree was walked completely, <code>false</code> if it was aborted
      */
@@ -313,6 +315,8 @@ public interface Resource extends Serializable {
 
     /**
      * Resolves a child resource.
+     * <p>
+     * The type of the child will be directory if the path ends with "/" or a file otherwise.
      *
      * @param path the relative path
      * @return a non-null resource
@@ -403,6 +407,14 @@ public interface Resource extends Serializable {
      * @return a new instance
      */
     Resource withAttribute(String name, Object value);
+
+    /**
+     * Creates a copy of the resource, and changes the mime type.
+     *
+     * @param mimeType the name
+     * @return a new instance
+     */
+    Resource withMimeType(String mimeType);
 
     /**
      * An enum for a resource type

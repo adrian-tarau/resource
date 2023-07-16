@@ -45,22 +45,23 @@ class FileResourceTest {
         Resource dir1 = fromFile("dir1");
         dir1.walk(visitor);
         assertCount(1, 0);
-        dir1 = dir1.getParent();
+        dir1 = fromFile("dir3");
         dir1.walk(visitor, 1);
-        assertCount(2, 4);
+        assertCount(1, 2);
         dir1.walk(visitor, 2);
-        assertCount(6, 7);
+        assertCount(3, 3);
         dir1.walk(visitor, 3);
-        assertCount(8, 8);
+        assertCount(4, 3);
         dir1.walk(visitor);
-        assertCount(14, 8);
+        assertCount(4, 3);
     }
 
     @Test
     void list() throws IOException {
         Resource dir1 = fromFile("dir1");
         assertEquals(1, dir1.list().size());
-        assertEquals(6, dir1.getParent().list().size());
+        dir1 = fromFile("dir3");
+        assertEquals(3, dir1.list().size());
     }
 
     private void assertCount(int fileCount, int directoryCount) {

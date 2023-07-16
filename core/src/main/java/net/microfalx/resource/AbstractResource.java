@@ -30,6 +30,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     private String name;
     private String description;
+    private String mimeType;
     private boolean absolutePath = true;
 
     private Credential credential = new NullCredential();
@@ -96,7 +97,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public Reader getReader() throws IOException {
+    public final Reader getReader() throws IOException {
         return new InputStreamReader(getInputStream(), StandardCharsets.UTF_8);
     }
 
@@ -106,7 +107,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public InputStream getInputStream(boolean raw) throws IOException {
+    public final InputStream getInputStream(boolean raw) throws IOException {
         return time("get_input", () -> getBufferedInputStream(process(doGetInputStream(raw), raw)));
     }
 
@@ -261,7 +262,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public Resource withCredential(Credential credential) {
+    public final Resource withCredential(Credential credential) {
         requireNonNull(credential);
         AbstractResource copy = copy();
         copy.credential = credential;
@@ -269,7 +270,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public Resource withAbsolutePath(boolean absolutePath) {
+    public final Resource withAbsolutePath(boolean absolutePath) {
         AbstractResource copy = copy();
         copy.absolutePath = absolutePath;
         return copy;
@@ -283,7 +284,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public String getPath(Resource resource) {
+    public final String getPath(Resource resource) {
         requireNonNull(resource);
 
         String resourcePath = removeEndSlash(resource.toURI().toASCIIString());
@@ -315,7 +316,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public boolean isAbsolutePath() {
+    public final boolean isAbsolutePath() {
         return absolutePath;
     }
 
@@ -324,16 +325,18 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public String getContentType() {
-        String contentType = null;
-        if (isNotEmpty(getFileExtension())) {
-            contentType = URLConnection.guessContentTypeFromName(getFileName());
+    public final String getMimeType() {
+        if (mimeType == null) {
+            if (isNotEmpty(getFileExtension())) {
+                mimeType = URLConnection.guessContentTypeFromName(getFileName());
+            }
+            mimeType = defaultIfEmpty(mimeType, "application/octet-stream");
         }
-        return defaultIfEmpty(contentType, "application/octet-stream");
+        return mimeType;
     }
 
     @Override
-    public String getDescription() {
+    public final String getDescription() {
         if (isNotEmpty(description)) {
             return description;
         }
@@ -347,10 +350,17 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public Resource withAttribute(String name, Object value) {
+    public final Resource withAttribute(String name, Object value) {
         AbstractResource copy = copy();
         if (copy.attributes == null) copy.attributes = new HashMap<>();
         copy.attributes.put(name, value);
+        return copy;
+    }
+
+    @Override
+    public final Resource withMimeType(String mimeType) {
+        AbstractResource copy = copy();
+        copy.description = description;
         return copy;
     }
 
@@ -360,7 +370,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public String loadAsString(boolean raw) throws IOException {
+    public final String loadAsString(boolean raw) throws IOException {
         return getInputStreamAsString(getInputStream(raw));
     }
 
@@ -370,7 +380,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public byte[] loadAsBytes(boolean raw) throws IOException {
+    public final byte[] loadAsBytes(boolean raw) throws IOException {
         return getInputStreamAsBytes(getInputStream());
     }
 
@@ -407,7 +417,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
      *
      * @param child the child to be updated
      */
-    private final void updateChild(Resource child) {
+    private void updateChild(Resource child) {
         // empty
     }
 

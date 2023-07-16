@@ -15,6 +15,7 @@ import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.ExceptionUtils.throwException;
 import static net.microfalx.lang.IOUtils.*;
 import static net.microfalx.lang.StringUtils.EMPTY_STRING;
+import static net.microfalx.lang.StringUtils.removeStartSlash;
 import static net.microfalx.resource.ResourceUtils.FILE_SCHEME;
 import static net.microfalx.resource.ResourceUtils.hash;
 
@@ -217,7 +218,7 @@ public class FileResource extends AbstractResource {
     @Override
     public final Resource resolve(String path) {
         requireNonNull(path);
-        File child = new File(file, path);
+        File child = new File(file, removeStartSlash(path));
         return FileResource.create(child);
     }
 
@@ -225,7 +226,7 @@ public class FileResource extends AbstractResource {
     public final Resource resolve(String path, Type type) {
         requireNonNull(path);
         requireNonNull(type);
-        File child = new File(file, path);
+        File child = new File(file, removeStartSlash(path));
         return new FileResource(type, hash(child.getAbsolutePath()), child);
     }
 

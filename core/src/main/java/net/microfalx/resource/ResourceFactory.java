@@ -19,6 +19,8 @@ public class ResourceFactory {
     private static final List<ResourceResolver> resolvers = new CopyOnWriteArrayList<>();
     private static final List<ResourceProcessor> processors = new CopyOnWriteArrayList<>();
 
+    private static volatile Resource root;
+
     /**
      * Creates a resource from a URI.
      * <p>
@@ -55,6 +57,25 @@ public class ResourceFactory {
     public static Resource resolve(String uri, Credential credential) {
         requireNonNull(uri);
         return resolve(toUri(uri), credential);
+    }
+
+    /**
+     * Returns the root resource used for the shared resources.
+     *
+     * @return the resource, null if not set
+     * @see SharedResource
+     */
+    public static Resource getRoot() {
+        return root;
+    }
+
+    /**
+     * Changes the root resource used for the shared resources.
+     *
+     * @param root the root
+     */
+    public static void setRoot(Resource root) {
+        ResourceFactory.root = root;
     }
 
     /**
@@ -130,7 +151,7 @@ public class ResourceFactory {
     /**
      * Initializes the providers
      */
-     static void initialize() {
+    static void initialize() {
         if (!resolvers.isEmpty()) return;
 
         LOGGER.fine("Initialize resource resolvers");
