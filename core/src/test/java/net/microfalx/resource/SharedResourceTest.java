@@ -6,12 +6,11 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.microfalx.lang.IOUtils.getInputStreamAsBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class SharedResourceTest {
+class SharedResourceTest extends AbstractResourceTestCase {
 
     @BeforeEach
     void before() {
@@ -54,28 +53,14 @@ class SharedResourceTest {
     @Test
     void walk() throws IOException {
         Resource dir1 = SharedResource.directory("/");
-        AtomicInteger fileCount = new AtomicInteger();
-        AtomicInteger directoryCount = new AtomicInteger();
-        dir1.walk((root, child) -> {
-            if (child.isFile()) {
-                fileCount.incrementAndGet();
-            } else {
-                directoryCount.incrementAndGet();
-            }
-            return true;
-        });
-        assertEquals(4, fileCount.get());
-        assertEquals(3, directoryCount.get());
+        dir1.walk(visitor);
+        assertCount(4, 3);
     }
 
     @Test
     void toUri() {
         assertEquals(URI.create("shared:/test1"), SharedResource.file("test1").toURI());
 
-    }
-
-    private Resource fromFile(String path) {
-        return ClassPathResource.file(path).toFile();
     }
 
 }

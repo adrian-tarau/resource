@@ -253,7 +253,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     protected boolean doWalk(ResourceVisitor visitor, int maxDepth) throws IOException {
-        throw new IOException("Not supported");
+        return doWalk(this, this, visitor, 1, maxDepth);
     }
 
     @Override
@@ -496,6 +496,28 @@ public abstract class AbstractResource implements Resource, Cloneable {
     private InputStream process(InputStream inputStream, boolean raw) {
         if (raw) return inputStream;
         return ResourceFactory.process(this, inputStream);
+    }
+
+    /**
+     * Default implementation of the walk, using {@link #list()}
+     *
+     * @param resource     the current resource
+     * @param visitor      the visitor
+     * @param currentDepth the current depth
+     * @param maxDepth     the maximum depth
+     * @return <code>true</code> if the tree was walked completely, <code>false</code> if it was aborted
+     * @throws IOException if an I/O error occurs
+     */
+    private boolean doWalk(Resource rootResource, Resource resource, ResourceVisitor visitor, int currentDepth, int maxDepth) throws IOException {
+        if (currentDepth > maxDepth) return false;
+        Collection<Resource> childResources = resource.list();
+        for (Resource childResource : childResources) {
+            visitor.onResource(rootResource, childResource);
+            if (childResource.isDirectory()) {
+                if (doWalk(rootResource, childResource, visitor, currentDepth + 1, maxDepth)) return true;
+            }
+        }
+        return false;
     }
 
     @Override
