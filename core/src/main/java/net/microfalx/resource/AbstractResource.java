@@ -4,7 +4,9 @@ import net.microfalx.lang.FileUtils;
 import net.microfalx.metrics.Metrics;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -220,6 +222,16 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public final boolean exists() throws IOException {
         return time("exists", this::doExists);
+    }
+
+    @Override
+    public final URL toURL() {
+        URI uri = toURI();
+        try {
+            return uri.toURL();
+        } catch (MalformedURLException e) {
+            throw new ResourceException("Failed to convert URI '" + uri + "' to an URL", e);
+        }
     }
 
     protected void doDelete() throws IOException {

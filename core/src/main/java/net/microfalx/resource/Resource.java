@@ -2,6 +2,7 @@ package net.microfalx.resource;
 
 import java.io.*;
 import java.net.URI;
+import java.net.URL;
 import java.util.Collection;
 
 /**
@@ -359,6 +360,14 @@ public interface Resource extends Serializable {
      * @return a non-null instance
      */
     URI toURI();
+
+    /**
+     * Returns the URL (if possible) representing the resource.
+     *
+     * @return a non-null instance
+     * @throws ResourceException if the resource URI's cannot be converted to an URL
+     */
+    URL toURL();
 
     /**
      * Returns the resource representing a local file.
