@@ -1,5 +1,6 @@
 package net.microfalx.resource.archive;
 
+import net.microfalx.lang.annotation.Order;
 import net.microfalx.resource.Resource;
 import net.microfalx.resource.ResourceProcessor;
 import org.apache.commons.compress.compressors.CompressorException;
@@ -10,6 +11,7 @@ import java.io.InputStream;
 /**
  * A processor which tries to decompress the stream if the stream is compressed.
  */
+@Order(Order.HIGH)
 public class ArchiveResourceProcessor implements ResourceProcessor {
 
     @Override
@@ -20,10 +22,5 @@ public class ArchiveResourceProcessor implements ResourceProcessor {
         } catch (CompressorException e) {
             return inputStream;
         }
-    }
-
-    @Override
-    public int getOrder() {
-        return HIGH_PRIORITY;
     }
 }

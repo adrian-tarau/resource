@@ -22,6 +22,8 @@ public class ResourceUtils {
     public static final String HTTPS_SCHEME = "https";
     public static final String SHARED = "shared";
 
+    public static final byte[] EMPTY_BYTES = new byte[0];
+
     /**
      * Holds all metrics related to resource
      */

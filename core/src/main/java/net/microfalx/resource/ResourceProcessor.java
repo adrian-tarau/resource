@@ -7,10 +7,6 @@ import java.io.InputStream;
  */
 public interface ResourceProcessor {
 
-    int LOW_ORDER = 0;
-    int DEFAULT_PRIORITY = 100;
-    int HIGH_PRIORITY = 200;
-
     /**
      * Returns a different stream.
      *
@@ -20,13 +16,5 @@ public interface ResourceProcessor {
      */
     default InputStream getInputStream(Resource resource, InputStream inputStream) {
         return inputStream;
-    }
-
-    /**
-     * Returns the order in which the resolver is called.
-     * @return an interger
-     */
-    default int getOrder() {
-        return DEFAULT_PRIORITY;
     }
 }

@@ -7,10 +7,6 @@ import java.net.URI;
  */
 public interface ResourceResolver {
 
-    int LOW_ORDER = 0;
-    int DEFAULT_PRIORITY = 100;
-    int HIGH_PRIORITY = 200;
-
     /**
      * Returns whether the resolve supports the scheme and can resolve resources.
      *
@@ -32,13 +28,5 @@ public interface ResourceResolver {
      */
     default void clearCache() {
         // empty on purpose
-    }
-
-    /**
-     * Returns the order in which the resolver is called.
-     * @return an interger
-     */
-    default int getOrder() {
-        return DEFAULT_PRIORITY;
     }
 }

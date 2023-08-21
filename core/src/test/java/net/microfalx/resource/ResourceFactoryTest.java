@@ -2,8 +2,10 @@ package net.microfalx.resource;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
 import java.net.URI;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 class ResourceFactoryTest {
@@ -27,5 +29,13 @@ class ResourceFactoryTest {
     void resolveUnknown() {
         Resource resource = ResourceFactory.resolve(URI.create("dummy:/file1.txt"));
         assertSame(NullResource.class, resource.getClass());
+    }
+
+    @Test
+    void mimeType() {
+        assertEquals(MimeType.APPLICATION_OCTET_STREAM.toString(), ResourceFactory.detect(new ByteArrayInputStream(new byte[100]), "demo.bin"));
+        assertEquals(MimeType.TEXT_PLAIN.toString(), ResourceFactory.detect(new ByteArrayInputStream("Text".getBytes()), "demo.bin"));
+        assertEquals(MimeType.TEXT_PLAIN.toString(), ResourceFactory.detect(new ByteArrayInputStream(new byte[100]), "demo.txt"));
+        assertEquals(MimeType.TEXT_HTML.toString(), ResourceFactory.detect(new ByteArrayInputStream(new byte[100]), "demo.html"));
     }
 }

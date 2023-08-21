@@ -1,8 +1,14 @@
 package net.microfalx.resource;
 
+import net.microfalx.lang.AnnotationUtils;
+
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
@@ -18,6 +24,7 @@ public class ResourceFactory {
 
     private static final List<ResourceResolver> resolvers = new CopyOnWriteArrayList<>();
     private static final List<ResourceProcessor> processors = new CopyOnWriteArrayList<>();
+    private static final List<MimeTypeResolver> mimeTypeResolvers = new CopyOnWriteArrayList<>();
 
     private static volatile Resource root;
 
@@ -99,6 +106,16 @@ public class ResourceFactory {
     }
 
     /**
+     * Returns registered mime type resolvers.
+     *
+     * @return a non-null instance
+     */
+    public static Collection<MimeTypeResolver> getMimeTypeResolvers() {
+        initialize();
+        return Collections.unmodifiableCollection(mimeTypeResolvers);
+    }
+
+    /**
      * Intercepts the input stream of a resource.
      *
      * @param resource    the resource
@@ -108,10 +125,35 @@ public class ResourceFactory {
     public static InputStream process(Resource resource, InputStream inputStream) {
         requireNonNull(resource);
         requireNonNull(inputStream);
-        for (ResourceProcessor processor : processors) {
+        for (ResourceProcessor processor : getProcessors()) {
             inputStream = processor.getInputStream(resource, inputStream);
         }
         return inputStream;
+    }
+
+    /**
+     * Returns the mime type for a given stream.
+     * <p>
+     * The method returns {@link MimeType#APPLICATION_OCTET_STREAM} if an existing mime type cannot be detected.
+     *
+     * @param inputStream the input stream
+     * @param fileName    the file name
+     * @return the mime type
+     */
+    public static String detect(InputStream inputStream, String fileName) {
+        requireNonNull(fileName);
+        requireNonNull(inputStream);
+
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+        for (MimeTypeResolver mimeTypeResolver : getMimeTypeResolvers()) {
+            String mimeType = mimeTypeResolver.detect(bufferedInputStream, fileName);
+            if (!MimeType.APPLICATION_OCTET_STREAM.equals(mimeType)) return mimeType;
+        }
+        return MimeType.APPLICATION_OCTET_STREAM.toString();
+    }
+
+    public static Logger getLOGGER() {
+        return LOGGER;
     }
 
     /**
@@ -126,8 +168,7 @@ public class ResourceFactory {
     public static Resource resolve(URI uri, Credential credential) {
         requireNonNull(uri);
         if (credential == null) credential = new NullCredential();
-        initialize();
-        for (ResourceResolver resolver : resolvers) {
+        for (ResourceResolver resolver : getResolvers()) {
             if (resolver.supports(uri)) {
                 Resource resource = resolver.resolve(uri);
                 if (resource instanceof AbstractResource) {
@@ -160,7 +201,7 @@ public class ResourceFactory {
             LOGGER.fine(" - " + resolver.getClass().getName());
             ResourceFactory.resolvers.add(resolver);
         }
-        ResourceFactory.resolvers.sort(Comparator.comparingInt(ResourceResolver::getOrder).reversed());
+        AnnotationUtils.sort(ResourceFactory.resolvers);
 
         LOGGER.fine("Initialize resource processors");
         ServiceLoader<ResourceProcessor> processors = ServiceLoader.load(ResourceProcessor.class);
@@ -168,6 +209,14 @@ public class ResourceFactory {
             LOGGER.fine(" - " + processor.getClass().getName());
             ResourceFactory.processors.add(processor);
         }
-        ResourceFactory.processors.sort(Comparator.comparingInt(ResourceProcessor::getOrder).reversed());
+        AnnotationUtils.sort(ResourceFactory.processors);
+
+        LOGGER.fine("Initialize mime type resolvers");
+        ServiceLoader<MimeTypeResolver> mimeTypeResolvers = ServiceLoader.load(MimeTypeResolver.class);
+        for (MimeTypeResolver mimeTypeResolver : mimeTypeResolvers) {
+            LOGGER.fine(" - " + mimeTypeResolver.getClass().getName());
+            ResourceFactory.mimeTypeResolvers.add(mimeTypeResolver);
+        }
+        AnnotationUtils.sort(ResourceFactory.mimeTypeResolvers);
     }
 }

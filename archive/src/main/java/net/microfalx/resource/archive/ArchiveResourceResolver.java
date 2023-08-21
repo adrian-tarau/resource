@@ -1,11 +1,13 @@
 package net.microfalx.resource.archive;
 
+import net.microfalx.lang.annotation.Order;
 import net.microfalx.resource.Resource;
 import net.microfalx.resource.ResourceFactory;
 import net.microfalx.resource.ResourceResolver;
 
 import java.net.URI;
 
+@Order(Order.LOW)
 public class ArchiveResourceResolver implements ResourceResolver {
 
     private static final ThreadLocal<Boolean> FORWARD = ThreadLocal.withInitial(() -> Boolean.FALSE);
@@ -25,10 +27,5 @@ public class ArchiveResourceResolver implements ResourceResolver {
         } finally {
             FORWARD.remove();
         }
-    }
-
-    @Override
-    public int getOrder() {
-        return LOW_ORDER;
     }
 }
