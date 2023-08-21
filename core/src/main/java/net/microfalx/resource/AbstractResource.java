@@ -1,6 +1,7 @@
 package net.microfalx.resource;
 
 import net.microfalx.lang.FileUtils;
+import net.microfalx.lang.IOUtils;
 import net.microfalx.metrics.Metrics;
 
 import java.io.*;
@@ -110,7 +111,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final InputStream getInputStream(boolean raw) throws IOException {
-        return time("get_input", () -> getBufferedInputStream(process(doGetInputStream(raw), raw)));
+        return time("get_input", () -> getBufferedInputStream(process(getBufferedInputStream(doGetInputStream(raw)), raw)));
     }
 
     @Override
@@ -449,7 +450,12 @@ public abstract class AbstractResource implements Resource, Cloneable {
      * @param depth    the current depth
      * @return self
      */
-    protected Resource doCopyFrom(Resource resource, int depth) {
+    protected Resource doCopyFrom(Resource resource, int depth) throws IOException {
+        if (resource.isFile()) {
+            IOUtils.appendStream(getOutputStream(), resource.getInputStream());
+        } else {
+            throw new ResourceException("Directory copy not supported");
+        }
         return this;
     }
 

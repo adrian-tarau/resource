@@ -38,6 +38,16 @@ public class ResourceUtils {
     }
 
     /**
+     * Returns whether the URI points to a local file.
+     *
+     * @param uri the URI
+     * @return <code>true</code> if a local file, <code>false</code> otherwise
+     */
+    public static boolean isFileUri(URI uri) {
+        return uri.getScheme() == null || "file".equalsIgnoreCase(uri.getScheme());
+    }
+
+    /**
      * Returns an URI from its string representation.
      * <p>
      * It handles Windows path formats

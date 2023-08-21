@@ -1,6 +1,8 @@
 package net.microfalx.resource;
 
 
+import net.microfalx.lang.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -68,7 +70,7 @@ public final class StreamResource extends AbstractResource {
     private StreamResource(InputStream inputStream, String id, String fileName, URI uri) {
         super(Type.FILE, id);
 
-        this.inputStream = inputStream;
+        this.inputStream = IOUtils.getBufferedInputStream(inputStream);
         this.fileName = fileName;
         this.uri = uri;
     }
