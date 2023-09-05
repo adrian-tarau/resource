@@ -14,14 +14,14 @@ public class TemporaryFileResource extends FileResource {
      * Create a new file resource in JVM temporary directory.
      *
      * @param prefix the prefix of the temporary file
-     * @param suffix the suffix (an extension) of the temporary file
+     * @param suffix the suffix (an extension, optional) of the temporary file
      * @return a non-null instance
      */
     public static Resource file(String prefix, String suffix) {
         requireNonNull(prefix);
-        requireNonNull(suffix);
 
-        String fileName = prefix + Long.toString(System.currentTimeMillis(), 26) + SEQUENCE.getAndDecrement() + suffix;
+        String fileName = prefix + Long.toString(System.currentTimeMillis(), 26) + SEQUENCE.getAndDecrement();
+        if (suffix != null) fileName += suffix;
         return file(fileName);
     }
 
@@ -29,14 +29,14 @@ public class TemporaryFileResource extends FileResource {
      * Create a new directory resource in JVM temporary directory.
      *
      * @param prefix the prefix of the temporary file
-     * @param suffix the suffix (an extension) of the temporary file
+     * @param suffix the suffix (optional) of the temporary file
      * @return a non-null instance
      */
     public static Resource directory(String prefix, String suffix) {
         requireNonNull(prefix);
-        requireNonNull(suffix);
 
-        String fileName = prefix + Long.toString(System.currentTimeMillis(), 26) + SEQUENCE.getAndDecrement() + suffix;
+        String fileName = prefix + Long.toString(System.currentTimeMillis(), 26) + SEQUENCE.getAndDecrement();
+        if (suffix != null) fileName += suffix;
         return directory(fileName);
     }
 

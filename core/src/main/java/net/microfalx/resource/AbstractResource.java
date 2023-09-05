@@ -1,5 +1,6 @@
 package net.microfalx.resource;
 
+import net.microfalx.lang.ClassUtils;
 import net.microfalx.lang.FileUtils;
 import net.microfalx.lang.IOUtils;
 import net.microfalx.metrics.Metrics;
@@ -164,6 +165,14 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
+    public final Resource createParents() throws IOException {
+        return time("createParents", () -> {
+            doCreateParents();
+            return this;
+        });
+    }
+
+    @Override
     public final Resource delete() throws IOException {
         return time("delete", () -> {
             if (isDirectory()) empty();
@@ -241,6 +250,18 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     protected void doCreate() throws IOException {
         throw new IOException("Not supported");
+    }
+
+    protected void doCreateParents() throws IOException {
+        Resource parent = getType() == Type.FILE ? getParent() : this;
+        if (parent != null) {
+            try {
+                parent.create();
+            } catch (Exception e) {
+                parent.createParents();
+                parent.create();
+            }
+        }
     }
 
     protected boolean doExists() throws IOException {
@@ -431,7 +452,13 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public Resource toFile() {
-        throw new ResourceException("Not Supported");
+        URI uri = toURI();
+        String scheme = uri.getScheme();
+        if (scheme == null || "file".equalsIgnoreCase(scheme)) {
+            return FileResource.create(uri);
+        } else {
+            throw new ResourceException(ClassUtils.getName(this) + " cannot be converted to a file resource");
+        }
     }
 
     /**
@@ -460,6 +487,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
      * @return self
      */
     protected Resource doCopyFrom(Resource resource, int depth) throws IOException {
+        createParents();
         if (resource.isFile()) {
             IOUtils.appendStream(getOutputStream(), resource.getInputStream());
         } else {

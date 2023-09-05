@@ -36,13 +36,11 @@ public class FileResource extends AbstractResource {
      */
     public static Resource create(URI uri) {
         requireNonNull(uri);
-
         File file = new File(uri.getPath());
         Type type = Type.FILE;
         if (file.isDirectory()) {
             type = Type.DIRECTORY;
         }
-
         return new FileResource(type, file.getAbsolutePath(), file);
     }
 
@@ -56,12 +54,10 @@ public class FileResource extends AbstractResource {
      */
     public static Resource create(File file) {
         requireNonNull(file);
-
         Type type = Type.FILE;
         if (file.exists() && file.isDirectory()) {
             type = Type.DIRECTORY;
         }
-
         return new FileResource(type, hash(file.getAbsolutePath()), file);
     }
 
@@ -73,7 +69,6 @@ public class FileResource extends AbstractResource {
      */
     public static Resource file(File file) {
         requireNonNull(file);
-
         return new FileResource(Type.FILE, hash(file.getAbsolutePath()), file);
     }
 
@@ -85,7 +80,6 @@ public class FileResource extends AbstractResource {
      */
     public static Resource directory(File file) {
         requireNonNull(file);
-
         return new FileResource(Type.DIRECTORY, hash(file.getAbsolutePath()), file);
     }
 
@@ -98,7 +92,6 @@ public class FileResource extends AbstractResource {
      */
     public static Resource create(Resource resource) throws IOException {
         requireNonNull(resource);
-
         if (resource instanceof FileResource) {
             return resource;
         } else {
@@ -110,7 +103,6 @@ public class FileResource extends AbstractResource {
 
     protected FileResource(Type type, String id, File file) {
         super(type, id);
-
         requireNonNull(file);
         this.file = file;
     }
@@ -118,10 +110,7 @@ public class FileResource extends AbstractResource {
     @Override
     public final Resource getParent() {
         File parentFile = file.getParentFile();
-        if (parentFile == null) {
-            return null;
-        }
-        return FileResource.create(parentFile);
+        return parentFile == null ? null : FileResource.directory(parentFile);
     }
 
     /**
@@ -149,7 +138,7 @@ public class FileResource extends AbstractResource {
         if (getType() == Type.FILE) {
             appendStream(getWriter(), new StringReader(EMPTY_STRING));
         } else {
-            if (!file.mkdirs()) {
+            if (!ResourceUtils.retryWithStatus(this, resource -> file.mkdirs())) {
                 throw new IOException("Directory '" + file + "' cannot be created");
             }
         }
@@ -233,6 +222,11 @@ public class FileResource extends AbstractResource {
     @Override
     public final URI toURI() {
         return file.toURI();
+    }
+
+    @Override
+    public final Resource toFile() {
+        return this;
     }
 
     public static class FileResourceResolver implements ResourceResolver {

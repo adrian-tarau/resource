@@ -1,15 +1,17 @@
 package net.microfalx.resource;
 
+import net.microfalx.lang.ExceptionUtils;
+import net.microfalx.lang.Hashing;
 import net.microfalx.metrics.Metrics;
 
 import java.net.URI;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 
-import static net.microfalx.lang.ExceptionUtils.throwException;
 import static net.microfalx.lang.StringUtils.isEmpty;
 import static net.microfalx.lang.StringUtils.split;
+import static net.microfalx.lang.ThreadUtils.sleepMillis;
 
 /**
  * Various utilities around resources.
@@ -21,6 +23,9 @@ public class ResourceUtils {
     public static final String HTTP_SCHEME = "http";
     public static final String HTTPS_SCHEME = "https";
     public static final String SHARED = "shared";
+
+    public static final int MAX_RETRY_COUNT = 3;
+    public static final int MAX_SLEEP_BETWEEN_RETRIES = 10;
 
     public static final byte[] EMPTY_BYTES = new byte[0];
 
@@ -65,20 +70,14 @@ public class ResourceUtils {
         return URI.create(uri);
     }
 
+    /**
+     * Calculates a hash out of a String.
+     *
+     * @param value the value
+     * @return the hash
+     */
     public static String hash(String value) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            if (value != null) md.update(value.getBytes());
-            byte[] data = md.digest();
-            return longToId(data, 0) + longToId(data, 8);
-        } catch (NoSuchAlgorithmException e) {
-            return throwException(e);
-        }
-    }
-
-    public static String longToId(byte[] data, int offset) {
-        long value = data[offset++] + (long) data[offset++] << 8 + (long) data[offset++] << 16 + (long) data[offset++] << 24 + (long) data[offset++] << 32 + (long) data[offset++] << 40 + (long) data[offset++] << 48 + (long) data[offset++] << 56;
-        return Long.toString(value, 26);
+        return Hashing.get(value);
     }
 
     /**
@@ -91,6 +90,51 @@ public class ResourceUtils {
         if (path == null) return 0;
         path = path.replace('\\', '/');
         return split(path, "/").length;
+    }
+
+    /**
+     * Performs an operation on behalf of a resource, with a maximum of N retries.
+     *
+     * @param resource the resource
+     * @param callback the callback
+     * @param <R>      the resource type
+     * @return the result of the function
+     */
+    public static <R extends Resource> boolean retryWithStatus(R resource, Function<R, Boolean> callback) {
+        int retryCount = MAX_RETRY_COUNT;
+        while (retryCount-- > 0) {
+            try {
+                return callback.apply(resource);
+            } catch (Exception e) {
+                // we ignore and consider the result is false
+            }
+            sleepMillis(ThreadLocalRandom.current().nextInt(MAX_SLEEP_BETWEEN_RETRIES));
+        }
+        return false;
+    }
+
+    /**
+     * Performs an operation on behalf of a resource, with a maximum of N retries.
+     *
+     * @param resource the resource
+     * @param callback the callback
+     * @param <T>      the result type
+     * @return the result of the function
+     */
+    public static <T> T retryWithException(Resource resource, Function<Resource, T> callback) {
+        Throwable throwable = null;
+        int retryCount = MAX_RETRY_COUNT;
+        while (retryCount-- > 0) {
+            throwable = null;
+            try {
+                return callback.apply(resource);
+            } catch (Exception e) {
+
+                throwable = e;
+            }
+            sleepMillis(ThreadLocalRandom.current().nextInt(MAX_SLEEP_BETWEEN_RETRIES));
+        }
+        return ExceptionUtils.throwException(throwable);
     }
 
 

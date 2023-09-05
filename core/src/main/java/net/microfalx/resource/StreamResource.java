@@ -76,11 +76,6 @@ public final class StreamResource extends AbstractResource {
     }
 
     @Override
-    public Resource getParent() {
-        return null;
-    }
-
-    @Override
     public String getFileName() {
         return fileName;
     }

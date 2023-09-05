@@ -31,11 +31,6 @@ public class NullResource extends AbstractResource {
     }
 
     @Override
-    public Resource getParent() {
-        return null;
-    }
-
-    @Override
     public String getFileName() {
         return getId();
     }

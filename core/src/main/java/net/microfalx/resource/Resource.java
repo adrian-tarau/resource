@@ -229,6 +229,16 @@ public interface Resource extends Serializable {
     Resource create() throws IOException;
 
     /**
+     * Creates all parents of a resource, if missing.
+     * <p>
+     * If the resource type is a directory, creates the directory (if missing) and all parent .
+     *
+     * @return self
+     * @throws IOException if an I/O error occurs
+     */
+    Resource createParents() throws IOException;
+
+    /**
      * Deletes a resource, if exists.
      * <p>
      * If the resource is a file, it removes the file, otherwise it will recursively remove all

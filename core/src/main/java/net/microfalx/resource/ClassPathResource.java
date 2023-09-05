@@ -97,7 +97,6 @@ public final class ClassPathResource extends UrlResource {
 
     public ClassPathResource(Type type, String id, URL url, String path) {
         super(type, id, url);
-
         this.path = path;
     }
 
@@ -116,15 +115,13 @@ public final class ClassPathResource extends UrlResource {
     }
 
     @Override
-    public Resource toFile() {
-        URI uri = toURI();
-        String scheme = uri.getScheme();
-        if (scheme == null || "file".equalsIgnoreCase(scheme)) {
-            return FileResource.create(uri);
-        } else if ("jar".equalsIgnoreCase(scheme)) {
+    public Resource resolve(String path) {
+        return ClassPathResource.file(addEndSlash(path) + path);
+    }
 
-        }
-        return super.toFile();
+    @Override
+    public Resource resolve(String path, Type type) {
+        return ClassPathResource.create(addEndSlash(this.path) + removeStartSlash(path), type);
     }
 
     @Override
@@ -161,10 +158,7 @@ public final class ClassPathResource extends UrlResource {
         @Override
         public Resource getParent() {
             String path = getParentPath(this.path);
-            if (isEmpty(path)) {
-                return ClassPathResource.create("/");
-            }
-            return ClassPathResource.create(path);
+            return isEmpty(path) ? directory("/") : file(path);
         }
 
         @Override
