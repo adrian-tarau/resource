@@ -1,7 +1,5 @@
 package net.microfalx.resource;
 
-import net.microfalx.lang.StringUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,6 +7,8 @@ import java.net.URI;
 import java.util.Collection;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.StringUtils.*;
+import static net.microfalx.resource.ResourceUtils.SHARED;
 import static net.microfalx.resource.ResourceUtils.hash;
 
 /**
@@ -29,7 +29,7 @@ public class SharedResource extends AbstractResource {
      */
     public static Resource create(String path) {
         requireNonNull(path);
-        return path.endsWith("/") ? directory(path) : file(path);
+        return ResourceUtils.isDirectory(path) ? directory(path) : file(path);
     }
 
     /**
@@ -41,7 +41,7 @@ public class SharedResource extends AbstractResource {
      */
     public static Resource file(String path) {
         requireNonNull(path);
-        return new SharedResource(Type.FILE, hash(path), path);
+        return new SharedResource(Type.FILE, path);
     }
 
     /**
@@ -53,12 +53,12 @@ public class SharedResource extends AbstractResource {
      */
     public static Resource directory(String path) {
         requireNonNull(path);
-        return new SharedResource(Type.DIRECTORY, hash(path), path);
+        return new SharedResource(Type.DIRECTORY, path);
     }
 
-    SharedResource(Type type, String id, String path) {
-        super(type, id);
-        this.path = StringUtils.addStartSlash(path);
+    SharedResource(Type type, String path) {
+        super(type, hash(addStartSlash(path)));
+        this.path = addStartSlash(path);
     }
 
     @Override
@@ -73,7 +73,14 @@ public class SharedResource extends AbstractResource {
 
     @Override
     public Resource resolve(String path) {
-        return getDelegatingResource().resolve(path);
+        Type type = ResourceUtils.isDirectory(path) ? Type.DIRECTORY : Type.FILE;
+        return resolve(path, type);
+    }
+
+    @Override
+    public Resource resolve(String path, Type type) {
+        String newPath = removeEndSlash(this.path) + ResourceUtils.SLASH + removeStartSlash(path);
+        return new SharedResource(type, newPath);
     }
 
     @Override
@@ -123,7 +130,7 @@ public class SharedResource extends AbstractResource {
 
     @Override
     public URI toURI() {
-        return URI.create(ResourceUtils.SHARED + ":" + StringUtils.addStartSlash(path));
+        return URI.create(SHARED + ":" + addStartSlash(path));
     }
 
     private Resource getDelegatingResource() {
@@ -132,5 +139,19 @@ public class SharedResource extends AbstractResource {
             throw new ResourceException("The root of the shared resources is not set");
         }
         return root.resolve(path, getType());
+    }
+
+    public static class SharedResourceResolver implements ResourceResolver {
+
+        @Override
+        public boolean supports(URI uri) {
+            String scheme = uri.getScheme();
+            return SHARED.equalsIgnoreCase(scheme);
+        }
+
+        @Override
+        public Resource resolve(URI uri, Resource.Type type) {
+            return type != null ? new SharedResource(type, uri.getPath()) : SharedResource.create(uri.getPath());
+        }
     }
 }

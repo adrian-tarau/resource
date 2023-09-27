@@ -29,7 +29,10 @@ public class FileResource extends AbstractResource {
     private final File file;
 
     /**
-     * Create a new resource from a file and with a relative path to an arbitrary root.
+     * Create a new resource from a URI path.
+     * <p>
+     * The type of the resource is based on the format of the path. If the path is ends with "/", it is a directory,
+     * otherwise a file.
      *
      * @param uri the URI of the resource
      * @return a non-null instance
@@ -38,26 +41,41 @@ public class FileResource extends AbstractResource {
         requireNonNull(uri);
         File file = new File(uri.getPath());
         Type type = Type.FILE;
-        if (file.isDirectory()) {
-            type = Type.DIRECTORY;
-        }
+        if (ResourceUtils.isDirectory(file, true)) type = Type.DIRECTORY;
+        return new FileResource(type, file.getAbsolutePath(), file);
+    }
+
+    /**
+     * Create a new resource from a URI path.
+     * <p>
+     * The type of the resource is based on the format of the path. If the path is ends with "/", it is a directory,
+     * otherwise a file.
+     *
+     * @param uri  the URI of the resource
+     * @param type the resource type
+     * @return a non-null instance
+     */
+    public static Resource create(URI uri, Resource.Type type) {
+        requireNonNull(uri);
+        requireNonNull(type);
+        File file = new File(uri.getPath());
         return new FileResource(type, file.getAbsolutePath(), file);
     }
 
     /**
      * Create a new resource from a file.
      * <p>
-     * The type of the resource is based on the file attributes. If the file/directory does not exist, it is presumed a file.
+     * The type of the resource is based on the file attributes/path. If the file/directory does not exist, the path is
+     * validated if it ends with "/".
      *
      * @param file the file of the resource
      * @return a non-null instance
+     * @see ResourceUtils#isDirectory(File, boolean)
      */
     public static Resource create(File file) {
         requireNonNull(file);
         Type type = Type.FILE;
-        if (file.exists() && file.isDirectory()) {
-            type = Type.DIRECTORY;
-        }
+        if (ResourceUtils.isDirectory(file, true)) type = Type.DIRECTORY;
         return new FileResource(type, hash(file.getAbsolutePath()), file);
     }
 
@@ -238,8 +256,8 @@ public class FileResource extends AbstractResource {
         }
 
         @Override
-        public Resource resolve(URI uri) {
-            return FileResource.create(uri);
+        public Resource resolve(URI uri, Resource.Type type) {
+            return type != null ? FileResource.create(uri, type) : FileResource.create(uri);
         }
     }
 }

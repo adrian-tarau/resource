@@ -7,9 +7,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
 import java.util.logging.Logger;
 
+import static java.util.Collections.unmodifiableCollection;
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.FileUtils.getParentPath;
 import static net.microfalx.lang.StringUtils.*;
@@ -58,6 +61,34 @@ public final class ClassPathResource extends UrlResource {
     }
 
     /**
+     * Create a composite file resource from a resource in the class path.
+     *
+     * @param path the path of the resource
+     * @return a non-null instance
+     */
+    public static Resource files(String path) {
+        requireNonNull(path);
+        try {
+            path = removeStartSlash(path);
+            Enumeration<URL> resourceUrls = ClassPathResource.class.getClassLoader().getResources(path);
+            Collection<URL> urls = toCollection(resourceUrls);
+            if (urls.isEmpty()) {
+                return NullResource.createNull();
+            } else {
+                Collection<Resource> resources = new ArrayList<>();
+                for (URL url : urls) {
+                    ClassPathResource resource = new ClassPathResource(Type.FILE, url, path);
+                    resources.add(resource);
+                }
+                return new CompositeResource(Type.DIRECTORY, path, resources);
+            }
+        } catch (IOException e) {
+            LOGGER.warning("Failed to extract class path resources for " + path + ", root cause " + e.getMessage());
+            return NullResource.createNull();
+        }
+    }
+
+    /**
      * Create a new resource from a resource in the class path.
      *
      * @param path the path of the resource
@@ -78,16 +109,14 @@ public final class ClassPathResource extends UrlResource {
                 type = typeFromPath(path, type);
                 Collection<Resource> resources = new ArrayList<>();
                 for (URL url : urls) {
-                    String id = url.toExternalForm();
-                    ClassPathResource resource = new ClassPathResource(type, id, url, path);
+                    ClassPathResource resource = new ClassPathResource(type, url, path);
                     resources.add(resource);
                 }
                 return new CompositeResource(type, path, resources);
             } else {
                 type = typeFromPath(path, type);
                 URL url = urls.iterator().next();
-                String id = hash(url.toExternalForm());
-                return new ClassPathResource(type, id, url, path);
+                return new ClassPathResource(type, url, path);
             }
         } catch (IOException e) {
             LOGGER.warning("Failed to extract class path resources for " + path + ", root cause " + e.getMessage());
@@ -95,8 +124,8 @@ public final class ClassPathResource extends UrlResource {
         }
     }
 
-    public ClassPathResource(Type type, String id, URL url, String path) {
-        super(type, id, url);
+    public ClassPathResource(Type type, URL url, String path) {
+        super(type, hash(url.toExternalForm()), url);
         this.path = path;
     }
 
@@ -116,12 +145,14 @@ public final class ClassPathResource extends UrlResource {
 
     @Override
     public Resource resolve(String path) {
-        return ClassPathResource.file(addEndSlash(path) + path);
+        String newPath = getSubPath(path);
+        return ResourceUtils.isDirectory(path) ? ClassPathResource.directory(newPath) : ClassPathResource.file(newPath);
     }
 
     @Override
     public Resource resolve(String path, Type type) {
-        return ClassPathResource.create(addEndSlash(this.path) + removeStartSlash(path), type);
+        String newPath = getSubPath(path);
+        return ClassPathResource.create(newPath, type);
     }
 
     @Override
@@ -146,7 +177,7 @@ public final class ClassPathResource extends UrlResource {
         private final Collection<Resource> resources;
 
         public CompositeResource(Type type, String path, Collection<Resource> resources) {
-            super(type, UUID.randomUUID().toString());
+            super(type, hash("composite_" + path));
 
             requireNonNull(path);
             requireNonNull(resources);
@@ -158,7 +189,7 @@ public final class ClassPathResource extends UrlResource {
         @Override
         public Resource getParent() {
             String path = getParentPath(this.path);
-            return isEmpty(path) ? directory("/") : file(path);
+            return isEmpty(path) ? directory("/") : directory(path);
         }
 
         @Override
@@ -198,15 +229,19 @@ public final class ClassPathResource extends UrlResource {
         protected Collection<Resource> doList() throws IOException {
             Collection<Resource> children = new ArrayList<>();
             for (Resource resource : resources) {
-                children.addAll(resource.list());
+                if (resource.getType() == Type.FILE) {
+                    children.add(resource);
+                } else {
+                    children.addAll(resource.list());
+                }
             }
-            return Collections.unmodifiableCollection(children);
+            return unmodifiableCollection(children);
         }
 
         @Override
         public Resource resolve(String path) {
-            String fullPath = this.path + "/" + removeStartSlash(path);
-            return ClassPathResource.create(fullPath);
+            String newPath = getSubPath(path);
+            return ClassPathResource.create(newPath);
         }
 
         @Override
@@ -237,8 +272,9 @@ public final class ClassPathResource extends UrlResource {
         }
 
         @Override
-        public Resource resolve(URI uri) {
-            return ClassPathResource.create(uri.getPath());
+        public Resource resolve(URI uri, Resource.Type type) {
+            requireNonNull(uri);
+            return type != null ? ClassPathResource.create(uri.getPath(), type) : ClassPathResource.create(uri.getPath());
         }
     }
 }

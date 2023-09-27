@@ -4,11 +4,14 @@ import net.microfalx.lang.ExceptionUtils;
 import net.microfalx.lang.Hashing;
 import net.microfalx.metrics.Metrics;
 
+import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
+import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.StringUtils.isEmpty;
 import static net.microfalx.lang.StringUtils.split;
 import static net.microfalx.lang.ThreadUtils.sleepMillis;
@@ -28,6 +31,7 @@ public class ResourceUtils {
     public static final int MAX_SLEEP_BETWEEN_RETRIES = 10;
 
     public static final byte[] EMPTY_BYTES = new byte[0];
+    public static final String SLASH = "/";
 
     /**
      * Holds all metrics related to resource
@@ -52,6 +56,103 @@ public class ResourceUtils {
      */
     public static boolean isFileUri(URI uri) {
         return uri.getScheme() == null || "file".equalsIgnoreCase(uri.getScheme());
+    }
+
+    /**
+     * Returns a file which ends with {@link File#separator}to make it look like a directory.
+     *
+     * @param file the file
+     * @return the changed file
+     */
+    public static File toDirectory(File file) {
+        requireNonNull(file);
+        String path = file.getAbsolutePath();
+        if (!path.endsWith(File.separator)) path += File.separator;
+        return new File(path);
+    }
+
+    /**
+     * Returns a file path which ends with {@link File#separator} to make it look like a directory.
+     *
+     * @param path the uri
+     * @return the changed uri
+     */
+    public static String toDirectory(String path) {
+        requireNonNull(path);
+        if (!path.endsWith(File.separator)) path += File.separator;
+        return path;
+    }
+
+    /**
+     * Returns a URI which ends with "/" to make it look like a directory.
+     *
+     * @param uri the uri
+     * @return the changed uri
+     */
+    public static URI toDirectory(URI uri) {
+        requireNonNull(uri);
+        String path = uri.getPath();
+        if (!path.endsWith(SLASH)) path += SLASH;
+        try {
+            return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), path, uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            return ExceptionUtils.throwException(e);
+        }
+    }
+
+    /**
+     * Returns whether the URI looks like a directory (ends with "/").
+     *
+     * @param uri the URI (as a string) to check
+     * @return {@code true} if looks like a directory, {@code false} otherwise
+     */
+    public static boolean isDirectory(String uri) {
+        requireNonNull(uri);
+        return uri.endsWith(SLASH);
+    }
+
+    /**
+     * Normalizes a file system path to match the OS path separator.
+     *
+     * @param path the path
+     * @return the normalize path
+     */
+    public static String normalizeFileSystemPath(String path) {
+        requireNonNull(path);
+        return path.replace('/', File.separatorChar);
+    }
+
+    /**
+     * Returns whether the URI looks like a directory (ends with "/").
+     *
+     * @param uri the URI (as a string) to check
+     * @return {@code true} if looks like a directory, {@code false} otherwise
+     */
+    public static boolean isDirectory(URI uri) {
+        requireNonNull(uri);
+        return uri.getPath().endsWith(SLASH);
+    }
+
+    /**
+     * Returns whether the URL looks like a directory (ends with "/").
+     *
+     * @param url the URL (as a string) to check
+     * @return {@code true} if looks like a directory, {@code false} otherwise
+     */
+    public static boolean isDirectory(URL url) {
+        requireNonNull(url);
+        return url.getPath().endsWith(SLASH);
+    }
+
+    /**
+     * Returns whether the file looks like a directory (ends with "/").
+     *
+     * @param file the URI (as a string) to check
+     * @return {@code true} if looks like a directory, {@code false} otherwise
+     */
+    public static boolean isDirectory(File file, boolean useFileSystem) {
+        requireNonNull(file);
+        return file.getPath().endsWith(File.separator) || (useFileSystem && file.isDirectory());
     }
 
     /**

@@ -283,9 +283,9 @@ public interface Resource extends Serializable {
     /**
      * Returns the mime type (content type) based on the file name extension.
      * <p>
-     * The mime type can be changed with {@link #withMimeType(String)}.
+     * The mime type can be changed with {@link #withMimeType}.
      *
-     * @return the content type
+     * @return a non-null string
      */
     String getMimeType();
 
@@ -430,10 +430,18 @@ public interface Resource extends Serializable {
     /**
      * Creates a copy of the resource, and changes the mime type.
      *
-     * @param mimeType the name
+     * @param mimeType the mime type
      * @return a new instance
      */
     Resource withMimeType(String mimeType);
+
+    /**
+     * Creates a copy of the resource, and changes the mime type.
+     *
+     * @param mimeType the mime type
+     * @return a new instance
+     */
+    Resource withMimeType(MimeType mimeType);
 
     /**
      * An enum for a resource type

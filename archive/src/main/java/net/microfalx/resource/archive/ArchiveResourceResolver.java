@@ -19,7 +19,7 @@ public class ArchiveResourceResolver implements ResourceResolver {
     }
 
     @Override
-    public Resource resolve(URI uri) {
+    public Resource resolve(URI uri, Resource.Type type) {
         FORWARD.set(Boolean.TRUE);
         try {
             Resource resource = ResourceFactory.resolve(uri);

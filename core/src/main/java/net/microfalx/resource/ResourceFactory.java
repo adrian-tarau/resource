@@ -1,8 +1,10 @@
 package net.microfalx.resource;
 
 import net.microfalx.lang.AnnotationUtils;
+import net.microfalx.lang.JvmUtils;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
@@ -49,7 +51,7 @@ public class ResourceFactory {
      * @return a non-null instance
      */
     public static Resource resolve(URI uri) {
-        return resolve(uri, null);
+        return resolve(uri, null, null);
     }
 
     /**
@@ -63,7 +65,7 @@ public class ResourceFactory {
      */
     public static Resource resolve(String uri, Credential credential) {
         requireNonNull(uri);
-        return resolve(toUri(uri), credential);
+        return resolve(toUri(uri), credential, null);
     }
 
     /**
@@ -82,6 +84,10 @@ public class ResourceFactory {
      * @param root the root
      */
     public static void setRoot(Resource root) {
+        requireNonNull(root);
+        if (root.getType() == Resource.Type.FILE) {
+            throw new IllegalArgumentException("Only a directory can be the root of the shared resources, received '" + root.toURI() + "'");
+        }
         ResourceFactory.root = root;
     }
 
@@ -163,14 +169,15 @@ public class ResourceFactory {
      *
      * @param uri        the URI
      * @param credential the credential, can be NULL
+     * @param type       the resource type, can be NULL for auto-selection
      * @return a non-null instance
      */
-    public static Resource resolve(URI uri, Credential credential) {
+    public static Resource resolve(URI uri, Credential credential, Resource.Type type) {
         requireNonNull(uri);
         if (credential == null) credential = new NullCredential();
         for (ResourceResolver resolver : getResolvers()) {
             if (resolver.supports(uri)) {
-                Resource resource = resolver.resolve(uri);
+                Resource resource = resolver.resolve(uri, type);
                 if (resource instanceof AbstractResource) {
                     ((AbstractResource) resource).setCredential(credential);
                 }
@@ -218,5 +225,8 @@ public class ResourceFactory {
             ResourceFactory.mimeTypeResolvers.add(mimeTypeResolver);
         }
         AnnotationUtils.sort(ResourceFactory.mimeTypeResolvers);
+
+        File shared = new File(JvmUtils.getHomeDirectory(), ".shared");
+        setRoot(FileResource.directory(shared));
     }
 }

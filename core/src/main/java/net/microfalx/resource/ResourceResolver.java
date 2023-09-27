@@ -19,9 +19,10 @@ public interface ResourceResolver {
      * Returns a resource for a given URI.
      *
      * @param uri the URI for the resource
+     * @param type the request type for resource, can be NULL for auto-detection
      * @return the resource
      */
-    Resource resolve(URI uri);
+    Resource resolve(URI uri, Resource.Type type);
 
     /**
      * Clears any caches use by provider.

@@ -1,2 +1,3 @@
 net.microfalx.resource.ClassPathResource$ClassPathResourceResolver
 net.microfalx.resource.FileResource$FileResourceResolver
+net.microfalx.resource.SharedResource$SharedResourceResolver

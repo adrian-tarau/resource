@@ -18,12 +18,6 @@ class SharedResourceTest extends AbstractResourceTestCase {
     }
 
     @Test
-    void noRootResource() throws IOException {
-        ResourceFactory.setRoot(null);
-        Assertions.assertThatThrownBy(() -> SharedResource.file("test").length()).hasMessageContaining("root of the shared");
-    }
-
-    @Test
     void getPath() throws IOException {
         assertEquals("/file31.txt", SharedResource.file("file31.txt").getPath());
         assertEquals("/dir31", SharedResource.directory("dir31").getPath());

@@ -34,7 +34,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     private String name;
     private String description;
-    private String mimeType;
+    private String mimeType = MimeType.APPLICATION_OCTET_STREAM.toString();
     private boolean absolutePath = true;
 
     private Credential credential = new NullCredential();
@@ -402,8 +402,16 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final Resource withMimeType(String mimeType) {
+        requireNonNull(mimeType);
         AbstractResource copy = copy();
-        copy.description = description;
+        copy.mimeType = mimeType;
+        return copy;
+    }
+
+    @Override
+    public Resource withMimeType(MimeType mimeType) {
+        AbstractResource copy = copy();
+        copy.mimeType = mimeType.toString();
         return copy;
     }
 
@@ -521,6 +529,16 @@ public abstract class AbstractResource implements Resource, Cloneable {
         } catch (CloneNotSupportedException e) {
             return throwException(e);
         }
+    }
+
+    /**
+     * Returns a sub-path relative to the resource path.
+     *
+     * @param path the sub path
+     * @return a non-null instance
+     */
+    protected String getSubPath(String path) {
+        return addEndSlash(this.getPath()) + removeStartSlash(path);
     }
 
     /**

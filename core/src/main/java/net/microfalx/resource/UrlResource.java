@@ -42,35 +42,35 @@ public class UrlResource extends AbstractResource {
      * @return a non-null instance
      */
     public static Resource create(URI uri) throws IOException {
-        return create(uri.toURL(), Type.FILE);
+        Type type = ResourceUtils.isDirectory(uri) ? Type.DIRECTORY : Type.FILE;
+        return create(uri.toURL(), type);
     }
 
     /**
-     * Create a new resource from an URL and with a relative path to an arbitrary root.
+     * Create a new resource from a URL and with a relative path to an arbitrary root.
      *
      * @param url the URL of the resource
      * @return a non-null instance
      */
     public static Resource create(URL url) {
-        return create(url, Type.FILE);
+        Type type = ResourceUtils.isDirectory(url) ? Type.DIRECTORY : Type.FILE;
+        return create(url, type);
     }
 
     /**
-     * Create a new resource from an URL and with a relative path to an arbitrary root.
+     * Create a new resource from a URL and with a relative path to an arbitrary root.
      *
      * @param url the URL of the resource
      * @return a non-null instance
      */
     public static Resource create(URL url, Type type) {
         requireNonNull(url);
-
         String id = hash(url.toExternalForm());
         return new UrlResource(type, id, url);
     }
 
     protected UrlResource(Type type, String id, URL url) {
         super(type, id);
-
         this.url = url;
     }
 
