@@ -86,6 +86,15 @@ public enum MimeType {
         return value.equalsIgnoreCase(mimeType.value);
     }
 
+    /**
+     * Returns whether the mime type indicates a subset of "text/*".
+     *
+     * @return {@code true} if a text, {@code false} otherwise
+     */
+    public boolean isText() {
+        return value.startsWith("text/");
+    }
+
     @Override
     public String toString() {
         return value;
