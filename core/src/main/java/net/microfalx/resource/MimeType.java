@@ -12,25 +12,26 @@ import java.util.Map;
  */
 public enum MimeType {
 
-    TEXT_PLAIN("text/plain"),
-    TEXT_CSS("text/css"),
-    TEXT_JAVASCRIPT("text/javascript"),
-    TEXT_HTML("text/html"),
-    TEXT_XML("text/xml"),
-    TEXT("text/*"),
+    TEXT_PLAIN("text/plain", true),
+    TEXT_CSS("text/css", true),
+    TEXT_JAVASCRIPT("text/javascript", true),
+    TEXT_HTML("text/html", true),
+    TEXT_XML("text/xml", true),
+    TEXT("text/*", true),
 
-    IMAGE_PNG("image/png"),
-    IMAGE_BMP("image/bmp"),
-    IMAGE_JPEG("image/jpeg"),
-    IMAGE_GIF("image/gif"),
-    IMAGE_TIFF("image/tiff"),
-    IMAGE("image/*"),
+    IMAGE_PNG("image/png", false),
+    IMAGE_BMP("image/bmp", false),
+    IMAGE_JPEG("image/jpeg", false),
+    IMAGE_GIF("image/gif", false),
+    IMAGE_TIFF("image/tiff", false),
+    IMAGE("image/*", false),
 
-    FONT("font/*"),
+    FONT("font/*", false),
 
-    APPLICATION_JSON("application/json"),
-    APPLICATION_OCTET_STREAM("application/octet-stream");
+    APPLICATION_JSON("application/json", true),
+    APPLICATION_OCTET_STREAM("application/octet-stream", false);
 
+    private boolean text;
     private String value;
 
     /**
@@ -48,8 +49,9 @@ public enum MimeType {
         return mimeType != null ? mimeType : APPLICATION_OCTET_STREAM;
     }
 
-    MimeType(String value) {
+    MimeType(String value, boolean text) {
         this.value = value;
+        this.text = text;
     }
 
     /**
@@ -87,12 +89,12 @@ public enum MimeType {
     }
 
     /**
-     * Returns whether the mime type indicates a subset of "text/*".
+     * Returns whether the mime type indicates a subset of "text/*" or other text based contents.
      *
      * @return {@code true} if a text, {@code false} otherwise
      */
     public boolean isText() {
-        return value.startsWith("text/");
+        return text;
     }
 
     @Override

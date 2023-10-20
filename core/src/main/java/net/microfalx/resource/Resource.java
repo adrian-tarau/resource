@@ -365,6 +365,18 @@ public interface Resource extends Serializable {
     Resource copyFrom(Resource resource, int depth);
 
     /**
+     * Copies properties from another resources.
+     * <p>
+     * The method copies various properties (mime-type, attributes, etc) from another resource.
+     * <p>
+     * This method is also invoked when {@link #copyFrom} is used.
+     *
+     * @param resource the resource
+     * @return self
+     */
+    Resource copyPropertiesFrom(Resource resource);
+
+    /**
      * Returns the URI representing the resource.
      *
      * @return a non-null instance

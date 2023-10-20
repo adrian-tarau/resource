@@ -90,14 +90,11 @@ public abstract class AbstractResource implements Resource, Cloneable {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public final <T> T getAttribute(String name) {
         requireNonNull(name);
-
-        if (attributes == null) {
-            return null;
-        }
-        return (T) attributes.get(name);
+        return attributes == null ? null : (T) attributes.get(name);
     }
 
     @Override
@@ -204,7 +201,29 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final Resource copyFrom(Resource resource, int depth) {
-        return time("copy", () -> doCopyFrom(resource, depth));
+        requireNonNull(resource);
+        return time("copy", () -> {
+            Resource self = doCopyFrom(resource, depth);
+            copyPropertiesFrom(resource);
+            return self;
+        });
+    }
+
+    @Override
+    public Resource copyPropertiesFrom(Resource resource) {
+        requireNonNull(resource);
+        return time("copy-properties", () -> {
+            this.mimeType = resource.getMimeType();
+            if (resource instanceof AbstractResource) {
+                AbstractResource otherResource = (AbstractResource) resource;
+                this.description = otherResource.description;
+                if (otherResource.attributes != null) {
+                    if (this.attributes == null) this.attributes = new HashMap<>();
+                    otherResource.attributes.putAll(this.attributes);
+                }
+            }
+            return this;
+        });
     }
 
     @Override
