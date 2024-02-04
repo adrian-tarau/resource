@@ -1,7 +1,7 @@
 package net.microfalx.resource;
 
 
-import net.microfalx.lang.IOUtils;
+import net.microfalx.lang.ClassUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,8 +10,10 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.IOUtils.getBufferedInputStream;
 import static net.microfalx.lang.StringUtils.isEmpty;
 
 /**
@@ -25,7 +27,7 @@ public final class StreamResource extends AbstractResource {
 
     private final InputStream inputStream;
     private final String fileName;
-    private final URI uri;
+    private Callable<InputStream> supplier;
     private final long lastModified = System.currentTimeMillis();
     private volatile boolean streamConsumed;
 
@@ -36,8 +38,8 @@ public final class StreamResource extends AbstractResource {
      * @return a non-null instance
      */
     public static Resource create(InputStream inputStream) {
+        requireNonNull(inputStream);
         String id = UUID.randomUUID().toString();
-
         return create(inputStream, id, null);
     }
 
@@ -48,7 +50,31 @@ public final class StreamResource extends AbstractResource {
      * @return a non-null instance
      */
     public static Resource create(InputStream inputStream, String fileName) {
+        requireNonNull(inputStream);
         return create(inputStream, fileName, null);
+    }
+
+    /**
+     * Creates a new resource.
+     *
+     * @param callable the supplier of the input stream
+     * @return a non-null instance
+     */
+    public static Resource create(Callable<InputStream> callable) {
+        requireNonNull(callable);
+        String id = UUID.randomUUID().toString();
+        return create(null, id, null);
+    }
+
+    /**
+     * Creates a new resource.
+     *
+     * @param callable the supplier of the input stream
+     * @return a non-null instance
+     */
+    public static Resource create(Callable<InputStream> callable, String fileName) {
+        requireNonNull(callable);
+        return create(null, fileName, callable);
     }
 
     /**
@@ -56,23 +82,20 @@ public final class StreamResource extends AbstractResource {
      *
      * @param inputStream the input stream used as content for resource
      * @param fileName    the file name associated with the memory stream
+     * @param supplier    the supplier for the input streams
      * @return a non-null instance
      */
-    public static Resource create(InputStream inputStream, String fileName, URI uri) {
-        requireNonNull(inputStream);
-        requireNonNull(fileName);
-
+    private static Resource create(InputStream inputStream, String fileName, Callable<InputStream> supplier) {
         String id = UUID.randomUUID().toString();
         if (isEmpty(fileName)) fileName = id;
-        return new StreamResource(inputStream, id, fileName, uri);
+        return new StreamResource(inputStream, id, fileName, supplier);
     }
 
-    private StreamResource(InputStream inputStream, String id, String fileName, URI uri) {
+    private StreamResource(InputStream inputStream, String id, String fileName, Callable<InputStream> supplier) {
         super(Type.FILE, id);
-
-        this.inputStream = IOUtils.getBufferedInputStream(inputStream);
+        this.inputStream = inputStream != null ? getBufferedInputStream(inputStream) : null;
+        this.supplier = supplier;
         this.fileName = fileName;
-        this.uri = uri;
     }
 
     @Override
@@ -82,13 +105,19 @@ public final class StreamResource extends AbstractResource {
 
     @Override
     public InputStream doGetInputStream(boolean raw) throws IOException {
-        if (streamConsumed) {
-            throw new IOException("Stream '" + getFileName() + "' already consumed");
-        }
-        try {
-            return inputStream;
-        } finally {
-            streamConsumed = true;
+        if (inputStream != null) {
+            if (streamConsumed) throw new IOException("Stream '" + getFileName() + "' already consumed");
+            try {
+                return inputStream;
+            } finally {
+                streamConsumed = true;
+            }
+        } else {
+            try {
+                return supplier.call();
+            } catch (Exception e) {
+                throw new IOException("Failed to retrieve a stream from supplier '" + ClassUtils.getName(supplier) + "'", e);
+            }
         }
     }
 
@@ -119,9 +148,6 @@ public final class StreamResource extends AbstractResource {
 
     @Override
     public URI toURI() {
-        if (uri != null) {
-            return uri;
-        }
         try {
             return new URI("memory://" + getId() + "/" + getFileName());
         } catch (URISyntaxException e) {
