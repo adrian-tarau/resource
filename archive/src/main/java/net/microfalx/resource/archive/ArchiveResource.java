@@ -22,6 +22,7 @@ import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.ExceptionUtils.throwException;
 import static net.microfalx.lang.IOUtils.getUnclosableInputStream;
 import static net.microfalx.lang.StringUtils.removeEndSlash;
+import static net.microfalx.resource.ResourceUtils.throwUnsupported;
 
 /**
  * A resource implementation on top of Apache Common Compress.
@@ -110,8 +111,13 @@ public final class ArchiveResource extends AbstractResource {
     }
 
     @Override
-    public Resource resolve(String path) {
-        return null;
+    public Resource resolve(String path, Resource.Type type) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Resource get(String path, Resource.Type type) {
+        return throwUnsupported();
     }
 
     @Override
@@ -231,8 +237,13 @@ public final class ArchiveResource extends AbstractResource {
         }
 
         @Override
-        public Resource resolve(String path) {
-            throw new ResolutionException("Not supported");
+        public Resource resolve(String path, Type type) {
+            return throwUnsupported();
+        }
+
+        @Override
+        public Resource get(String path, Type type) {
+            return throwUnsupported();
         }
 
         @Override

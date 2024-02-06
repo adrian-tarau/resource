@@ -7,7 +7,7 @@ import java.net.URI;
 import java.util.Collection;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
-import static net.microfalx.lang.StringUtils.*;
+import static net.microfalx.lang.StringUtils.addStartSlash;
 import static net.microfalx.resource.ResourceUtils.SHARED;
 import static net.microfalx.resource.ResourceUtils.hash;
 
@@ -72,15 +72,13 @@ public class SharedResource extends AbstractResource {
     }
 
     @Override
-    public Resource resolve(String path) {
-        Type type = ResourceUtils.isDirectory(path) ? Type.DIRECTORY : Type.FILE;
-        return resolve(path, type);
+    public Resource resolve(String path, Type type) {
+        return new SharedResource(type, getSubPath(path));
     }
 
     @Override
-    public Resource resolve(String path, Type type) {
-        String newPath = removeEndSlash(this.path) + ResourceUtils.SLASH + removeStartSlash(path);
-        return new SharedResource(type, newPath);
+    public Resource get(String path, Type type) {
+        return new SharedResource(type, path);
     }
 
     @Override

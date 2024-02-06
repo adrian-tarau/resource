@@ -56,7 +56,6 @@ public final class MemoryResource extends AbstractResource {
      */
     public static Resource create(String text, String fileName) {
         requireNonNull(text);
-
         return create(text.getBytes(), fileName);
     }
 
@@ -70,7 +69,6 @@ public final class MemoryResource extends AbstractResource {
      */
     public static Resource create(String text, String fileName, long lastModified) {
         requireNonNull(text);
-
         return create(text.getBytes(), fileName, lastModified);
     }
 
@@ -82,7 +80,6 @@ public final class MemoryResource extends AbstractResource {
      */
     public static Resource create(byte[] data) {
         String id = UUID.randomUUID().toString();
-
         return create(data, id);
     }
 
@@ -113,9 +110,7 @@ public final class MemoryResource extends AbstractResource {
 
     private MemoryResource(byte[] data, String id, String fileName, long lastModified) {
         super(Type.FILE, id);
-
         requireNonNull(data);
-
         this.fileName = fileName;
         this.data = Arrays.copyOf(data, data.length);
         this.lastModified = lastModified;
@@ -162,8 +157,13 @@ public final class MemoryResource extends AbstractResource {
     }
 
     @Override
-    public Resource resolve(String path) {
-        return NullResource.createNull();
+    public Resource resolve(String path, Type type) {
+        return Resource.NULL;
+    }
+
+    @Override
+    public Resource get(String path, Type type) {
+        return Resource.NULL;
     }
 
     @Override

@@ -95,7 +95,20 @@ public final class ClassPathResource extends UrlResource {
      * @return a non-null instance
      */
     public static Resource create(String path, Type type) {
+        return create(path, type, true);
+    }
+
+    /**
+     * Create a new resource from a resource in the class path.
+     *
+     * @param path                   the path of the resource
+     * @param type                   the resource type, can be null for auto-detection
+     * @param logMultipleFilesExists <code>true</code> to log a warning when multiple files exist in the class path, <code>false</code> otherwise
+     * @return a non-null instance
+     */
+    private static Resource create(String path, Type type, boolean logMultipleFilesExists) {
         requireNonNull(path);
+        type = getTypeFromPath(path, type);
         try {
             path = removeStartSlash(path);
             Enumeration<URL> resourceUrls = ClassPathResource.class.getClassLoader().getResources(path);
@@ -103,10 +116,10 @@ public final class ClassPathResource extends UrlResource {
             if (urls.isEmpty()) {
                 return NullResource.createNull();
             } else if (urls.size() > 1) {
-                if (type == Type.FILE) {
-                    LOGGER.warning("A file class path resource was requested (" + path + ") but multiple resources were located (" + urls + ")");
+                if (type == Type.FILE && logMultipleFilesExists) {
+                    LOGGER.warning("A file class path resource was requested (" + path + ") but multiple resources ("
+                            + urls.size() + " were located (" + urls + ")");
                 }
-                type = typeFromPath(path, type);
                 Collection<Resource> resources = new ArrayList<>();
                 for (URL url : urls) {
                     ClassPathResource resource = new ClassPathResource(type, url, path);
@@ -114,7 +127,6 @@ public final class ClassPathResource extends UrlResource {
                 }
                 return new CompositeResource(type, path, resources);
             } else {
-                type = typeFromPath(path, type);
                 URL url = urls.iterator().next();
                 return new ClassPathResource(type, url, path);
             }
@@ -146,13 +158,25 @@ public final class ClassPathResource extends UrlResource {
     @Override
     public Resource resolve(String path) {
         String newPath = getSubPath(path);
-        return ResourceUtils.isDirectory(path) ? ClassPathResource.directory(newPath) : ClassPathResource.file(newPath);
+        Type type = getTypeFromPath(path);
+        return ClassPathResource.create(newPath, type, false);
     }
 
     @Override
     public Resource resolve(String path, Type type) {
         String newPath = getSubPath(path);
-        return ClassPathResource.create(newPath, type);
+        return ClassPathResource.create(newPath, type, false);
+    }
+
+    @Override
+    public Resource get(String path) {
+        Type type = getTypeFromPath(path);
+        return ClassPathResource.create(path, type, false);
+    }
+
+    @Override
+    public Resource get(String path, Type type) {
+        return ClassPathResource.create(path, type, false);
     }
 
     @Override
@@ -169,7 +193,7 @@ public final class ClassPathResource extends UrlResource {
         return urls;
     }
 
-    static class CompositeResource extends AbstractResource {
+    static class CompositeResource extends AbstractResource implements net.microfalx.resource.CompositeResource {
 
         private static final long serialVersionUID = 3313044998127532888L;
 
@@ -178,12 +202,14 @@ public final class ClassPathResource extends UrlResource {
 
         public CompositeResource(Type type, String path, Collection<Resource> resources) {
             super(type, hash("composite_" + path));
-
             requireNonNull(path);
             requireNonNull(resources);
-
             this.path = removeEndSlash(path);
             this.resources = resources;
+        }
+
+        public Collection<Resource> getResources() {
+            return resources;
         }
 
         @Override
@@ -239,9 +265,13 @@ public final class ClassPathResource extends UrlResource {
         }
 
         @Override
-        public Resource resolve(String path) {
-            String newPath = getSubPath(path);
-            return ClassPathResource.create(newPath);
+        public Resource resolve(String path, Type type) {
+            return Resource.NULL;
+        }
+
+        @Override
+        public Resource get(String path, Type type) {
+            return Resource.NULL;
         }
 
         @Override

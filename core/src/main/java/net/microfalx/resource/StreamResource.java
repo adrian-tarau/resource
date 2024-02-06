@@ -142,8 +142,13 @@ public final class StreamResource extends AbstractResource {
     }
 
     @Override
-    public Resource resolve(String path) {
-        return NullResource.createNull();
+    public Resource resolve(String path, Type type) {
+        return Resource.NULL;
+    }
+
+    @Override
+    public Resource get(String path, Type type) {
+        return Resource.NULL;
     }
 
     @Override

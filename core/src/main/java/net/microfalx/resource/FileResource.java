@@ -238,6 +238,21 @@ public class FileResource extends AbstractResource {
     }
 
     @Override
+    public Resource get(String path) {
+        requireNonNull(path);
+        File child = new File(path);
+        return FileResource.create(child);
+    }
+
+    @Override
+    public Resource get(String path, Type type) {
+        requireNonNull(path);
+        requireNonNull(type);
+        File child = new File(path);
+        return new FileResource(type, hash(child.getAbsolutePath()), child);
+    }
+
+    @Override
     public final URI toURI() {
         return file.toURI();
     }

@@ -10,11 +10,13 @@ import net.microfalx.resource.*;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.StringUtils.addEndSlash;
+import static net.microfalx.resource.ResourceUtils.getTypeFromPath;
 
 public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS3Client> {
 
@@ -52,9 +54,8 @@ public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS
     public static StatefulResource create(URI uri, Credential credential) {
         requireNonNull(uri);
         String path = uri.getPath();
-
         String id = ResourceUtils.hash(uri.toASCIIString());
-        Type type = typeFromPath(path, null);
+        Type type = getTypeFromPath(path, null);
         return create(type, uri, credential);
     }
 
@@ -70,7 +71,6 @@ public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS
         requireNonNull(type);
         requireNonNull(uri);
         requireNonNull(credential);
-
         String id = ResourceUtils.hash(uri.toASCIIString());
         S3Resource resource = new S3Resource(type, id, uri);
         resource.setCredential(credential);
@@ -79,7 +79,6 @@ public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS
 
     private S3Resource(Type type, String id, URI uri) {
         super(type, id);
-
         requireNonNull(uri);
         this.uri = uri;
         setAbsolutePath(false);
@@ -113,23 +112,27 @@ public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS
     @Override
     public Resource resolve(String path) {
         requireNonNull(path);
-        String _uri = addEndSlash(uri.toASCIIString()) + path;
-        try {
-            return S3Resource.create(URI.create(_uri), getCredential());
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to create a child resource for " + _uri, e);
-        }
+        Type type = getTypeFromPath(path);
+        return resolve(path, type);
     }
 
     @Override
     public Resource resolve(String path, Type type) {
         requireNonNull(path);
         requireNonNull(type);
-        String _uri = addEndSlash(uri.toASCIIString()) + path;
+        String newUri = addEndSlash(uri.toASCIIString()) + path;
+        return createFromUri(newUri, type);
+    }
+
+    @Override
+    public Resource get(String path, Type type) {
+        requireNonNull(path);
+        requireNonNull(type);
         try {
-            return S3Resource.create(type, URI.create(_uri), getCredential());
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to create a child resource for " + _uri, e);
+            URI newUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), path, null, null);
+            return createFromUri(newUri.toASCIIString(), type);
+        } catch (URISyntaxException e) {
+            throw new ResourceException("Invalid resource URL for path '" + path + "', original URI '" + uri + "'", e);
         }
     }
 
@@ -214,5 +217,17 @@ public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS
         if (uri.getPort() > 0) endPoint.append(uri.getPath());
         endPoint.append(uri.getPath());
         return endPoint.toString();
+    }
+
+
+    /**
+     * Creates a new resource from a URI and a type, using the same credentials as this resource.
+     *
+     * @param uri  the URI as string
+     * @param type the type
+     * @return a new instance
+     */
+    private Resource createFromUri(String uri, Type type) {
+        return S3Resource.create(type, URI.create(uri), getCredential());
     }
 }

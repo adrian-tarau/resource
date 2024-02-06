@@ -3,6 +3,7 @@ package net.microfalx.resource;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.microfalx.lang.IOUtils.getInputStreamAsBytes;
 import static org.junit.jupiter.api.Assertions.*;
@@ -79,5 +80,39 @@ class UrlResourceTest {
     void toURI() {
         Resource resource = ClassPathResource.file("dir1/file11.txt");
         assertTrue(resource.toURI().toASCIIString().endsWith("file11.txt"));
+    }
+
+    @Test
+    void walkDirectory() throws IOException {
+        Resource directory = ClassPathResource.directory("dir3");
+        AtomicInteger directoryCount = new AtomicInteger();
+        AtomicInteger fileCount = new AtomicInteger();
+        directory.walk((root, child) -> {
+            if (child.isFile()) {
+                fileCount.incrementAndGet();
+            } else {
+                directoryCount.incrementAndGet();
+            }
+            return true;
+        });
+        assertEquals(3, directoryCount.get());
+        assertEquals(4, fileCount.get());
+    }
+
+    @Test
+    void walkDirectoryInsideJars() throws IOException {
+        Resource directory = ClassPathResource.directory("META-INF/maven");
+        AtomicInteger directoryCount = new AtomicInteger();
+        AtomicInteger fileCount = new AtomicInteger();
+        directory.walk((root, child) -> {
+            if (child.isFile()) {
+                fileCount.incrementAndGet();
+            } else {
+                directoryCount.incrementAndGet();
+            }
+            return true;
+        });
+        assertEquals(40, directoryCount.get());
+        assertEquals(40, fileCount.get());
     }
 }

@@ -310,8 +310,15 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public Resource resolve(String path, Type type) {
-        return resolve(path);
+    public Resource resolve(String path) {
+        Type type = ResourceUtils.isDirectory(path) ? Type.DIRECTORY : Type.FILE;
+        return resolve(path, type);
+    }
+
+    @Override
+    public Resource get(String path) {
+        Type type = ResourceUtils.isDirectory(path) ? Type.DIRECTORY : Type.FILE;
+        return get(path, type);
     }
 
     @Override
@@ -353,18 +360,16 @@ public abstract class AbstractResource implements Resource, Cloneable {
     public String getPath() {
         URI uri = toURI();
         if ("jar".equalsIgnoreCase(uri.getScheme())) {
-            String _uri = uri.toASCIIString();
-            int lastIndex = _uri.lastIndexOf("!/");
+            String uriAsString = uri.toASCIIString();
+            int lastIndex = uriAsString.lastIndexOf("!/");
             if (lastIndex != -1) {
-                return _uri.substring(lastIndex + 1);
+                return uriAsString.substring(lastIndex + 1);
             } else {
                 return "/";
             }
         }
         String path = uri.getPath();
-        if (isEmpty(path)) {
-            path = "/";
-        }
+        if (isEmpty(path)) path = ResourceUtils.SLASH;
         return path;
     }
 
@@ -463,9 +468,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     public final boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         AbstractResource that = (AbstractResource) o;
-
         if (type != that.type) return false;
         return id.equals(that.id);
     }
@@ -557,25 +560,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
      * @return a non-null instance
      */
     protected String getSubPath(String path) {
-        return addEndSlash(this.getPath()) + removeStartSlash(path);
-    }
-
-    /**
-     * Calculates the type of the resource based on the path.
-     *
-     * @param path         the path, can be NULL
-     * @param currentValue the current value, can be NULL
-     * @return the resource type
-     */
-    protected static Type typeFromPath(String path, Type currentValue) {
-        if (isEmpty(path)) return Type.DIRECTORY;
-        if (currentValue == null) {
-            currentValue = Type.FILE;
-            if (path.endsWith("/")) {
-                currentValue = Type.DIRECTORY;
-            }
-        }
-        return currentValue;
+        return removeEndSlash(this.getPath()) + ResourceUtils.SLASH + removeStartSlash(path);
     }
 
     /**

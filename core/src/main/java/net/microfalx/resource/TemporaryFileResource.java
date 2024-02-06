@@ -19,7 +19,6 @@ public class TemporaryFileResource extends FileResource {
      */
     public static Resource file(String prefix, String suffix) {
         requireNonNull(prefix);
-
         String fileName = prefix + Long.toString(System.currentTimeMillis(), 26) + SEQUENCE.getAndDecrement();
         if (suffix != null) fileName += suffix;
         return file(fileName);
@@ -34,7 +33,6 @@ public class TemporaryFileResource extends FileResource {
      */
     public static Resource directory(String prefix, String suffix) {
         requireNonNull(prefix);
-
         String fileName = prefix + Long.toString(System.currentTimeMillis(), 26) + SEQUENCE.getAndDecrement();
         if (suffix != null) fileName += suffix;
         return directory(fileName);
@@ -69,7 +67,6 @@ public class TemporaryFileResource extends FileResource {
     public static Resource create(Type type, String fileName) {
         requireNonNull(type);
         requireNonNull(fileName);
-
         File file = new File(getTemporaryDirectory(), fileName);
         return new FileResource(type, hash(file.getAbsolutePath()), file);
     }

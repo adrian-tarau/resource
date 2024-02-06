@@ -14,6 +14,13 @@ import java.util.Collection;
 public interface Resource extends Serializable {
 
     /**
+     * A resource which does not exist.
+     * <p>
+     * The resource is a valid reference, but it has not content and any write is ignored.
+     */
+    Resource NULL = NullResource.createNull();
+
+    /**
      * Returns the credential used to access the resource.
      *
      * @return a non-null instance
@@ -325,7 +332,7 @@ public interface Resource extends Serializable {
     boolean walk(ResourceVisitor visitor, int maxDepth) throws IOException;
 
     /**
-     * Resolves a child resource.
+     * Resolves a child resource relative to this parent.
      * <p>
      * The type of the child will be directory if the path ends with "/" or a file otherwise.
      *
@@ -335,13 +342,32 @@ public interface Resource extends Serializable {
     Resource resolve(String path);
 
     /**
-     * Resolves a child resource.
+     * Resolves a child resource relative to this parent.
      *
      * @param path the relative path
      * @param type the type of the child
      * @return a non-null resource
      */
     Resource resolve(String path, Type type);
+
+    /**
+     * Resolves an absolute resource.
+     * <p>
+     * The type of the child will be directory if the path ends with "/" or a file otherwise.
+     *
+     * @param path the absolute path
+     * @return a non-null resource
+     */
+    Resource get(String path);
+
+    /**
+     * Resolves an absolute resource.
+     *
+     * @param path the absolute path
+     * @param type the type of the child
+     * @return a non-null resource
+     */
+    Resource get(String path, Type type);
 
     /**
      * Copies the given resource to this resource.

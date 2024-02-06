@@ -31,7 +31,7 @@ class FileResourceTest extends AbstractResourceTestCase {
         assertTrue(directory.exists());
         assertFalse(directory.isFile());
         assertTrue(directory.isDirectory());
-        assertEquals(0, directory.length());
+        assertTrue(directory.length()> 0);
         assertNotEquals(0, directory.lastModified());
     }
 

@@ -6,6 +6,7 @@ import net.microfalx.resource.*;
 
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Vector;
@@ -14,6 +15,7 @@ import java.util.logging.Logger;
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.IOUtils.appendStream;
 import static net.microfalx.lang.StringUtils.*;
+import static net.microfalx.resource.ResourceUtils.getTypeFromPath;
 
 /**
  * A resource for a SFTP resource.
@@ -56,9 +58,7 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     public static StatefulResource create(URI uri, Credential credential) {
         requireNonNull(uri);
         String path = uri.getPath();
-
-        String id = ResourceUtils.hash(uri.toASCIIString());
-        Type type = typeFromPath(path, null);
+        Type type = getTypeFromPath(path, null);
         return create(type, uri, credential);
     }
 
@@ -74,7 +74,6 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
         requireNonNull(type);
         requireNonNull(uri);
         requireNonNull(credential);
-
         String id = ResourceUtils.hash(uri.toASCIIString());
         SftpResource resource = new SftpResource(type, id, uri);
         resource.setCredential(credential);
@@ -83,7 +82,6 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
 
     private SftpResource(Type type, String id, URI uri) {
         super(type, id);
-
         requireNonNull(uri);
         this.uri = uri;
         setAbsolutePath(false);
@@ -176,23 +174,27 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     @Override
     public Resource resolve(String path) {
         requireNonNull(path);
-        String _uri = addEndSlash(uri.toASCIIString()) + path;
-        try {
-            return SftpResource.create(URI.create(_uri), getCredential());
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to create a child resource for " + _uri, e);
-        }
+        Type type = getTypeFromPath(path);
+        return resolve(path, type);
     }
 
     @Override
     public Resource resolve(String path, Type type) {
         requireNonNull(path);
         requireNonNull(type);
-        String _uri = addEndSlash(uri.toASCIIString()) + path;
+        String newUri = addEndSlash(uri.toASCIIString()) + path;
+        return createFromUri(newUri, type);
+    }
+
+    @Override
+    public Resource get(String path, Type type) {
+        requireNonNull(path);
+        requireNonNull(type);
         try {
-            return SftpResource.create(type, URI.create(_uri), getCredential());
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to create a child resource for " + _uri, e);
+            URI newUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), path, null, null);
+            return createFromUri(newUri.toASCIIString(), type);
+        } catch (URISyntaxException e) {
+            throw new ResourceException("Invalid resource URL for path '" + path + "', original URI '" + uri + "'", e);
         }
     }
 
@@ -278,6 +280,17 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
             default:
                 return new IOException("SFTP action failed for '" + uri.getPath() + "'", exception);
         }
+    }
+
+    /**
+     * Creates a new resource from a URI and a type, using the same credentials as this resource.
+     *
+     * @param uri  the URI as string
+     * @param type the type
+     * @return a new instance
+     */
+    private Resource createFromUri(String uri, Type type) {
+        return SftpResource.create(type, URI.create(uri), getCredential());
     }
 
     static class HostKeyRepositoryImpl implements HostKeyRepository {

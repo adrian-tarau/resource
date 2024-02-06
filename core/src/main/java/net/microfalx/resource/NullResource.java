@@ -1,7 +1,9 @@
 package net.microfalx.resource;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -17,12 +19,13 @@ public class NullResource extends AbstractResource {
 
     /**
      * Creates a resource which do not exist and has no content.
+     * <p>
+     * Unless a new instance is needed (which should not be the case), it is recomented to use {@link Resource#NULL}.
      *
      * @return a non-null resource
      */
     public static Resource createNull() {
         String id = UUID.randomUUID().toString();
-
         return new NullResource(Type.FILE, id);
     }
 
@@ -38,6 +41,11 @@ public class NullResource extends AbstractResource {
     @Override
     public InputStream doGetInputStream(boolean raw) {
         return new ByteArrayInputStream(new byte[0]);
+    }
+
+    @Override
+    protected OutputStream doGetOutputStream() throws IOException {
+        return new NoopOutputStream();
     }
 
     @Override
@@ -61,8 +69,13 @@ public class NullResource extends AbstractResource {
     }
 
     @Override
-    public Resource resolve(String path) {
-        return NullResource.createNull();
+    public Resource resolve(String path, Type type) {
+        return Resource.NULL;
+    }
+
+    @Override
+    public Resource get(String path, Type type) {
+        return Resource.NULL;
     }
 
     @Override
@@ -71,6 +84,14 @@ public class NullResource extends AbstractResource {
             return new URI("file:///dev/null");
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    static class NoopOutputStream extends OutputStream {
+
+        @Override
+        public void write(int b) throws IOException {
+            // empty on purpose
         }
     }
 }

@@ -8,6 +8,9 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
@@ -153,6 +156,67 @@ public class ResourceUtils {
     public static boolean isDirectory(File file, boolean useFileSystem) {
         requireNonNull(file);
         return file.getPath().endsWith(File.separator) || (useFileSystem && file.isDirectory());
+    }
+
+    /**
+     * Calculates the type of the resource based on the path.
+     *
+     * @param path         the path, can be NULL
+     * @param currentValue the current value, can be NULL
+     * @return the resource type
+     */
+    public static Resource.Type getTypeFromPath(String path, Resource.Type currentValue) {
+        if (isEmpty(path)) return Resource.Type.DIRECTORY;
+        if (currentValue == null) currentValue = getTypeFromPath(path);
+        return currentValue;
+    }
+
+    /**
+     * Returns the resource type by looking at the path: if it ends with "/" it is presumed a directory,
+     * otherwise a file.
+     *
+     * @param path the path
+     * @return a non-ull type
+     */
+    public static Resource.Type getTypeFromPath(String path) {
+        if (isEmpty(path)) return Resource.Type.DIRECTORY;
+        return ResourceUtils.isDirectory(path) ? Resource.Type.DIRECTORY : Resource.Type.FILE;
+    }
+
+    /**
+     * Appends a resource to the collection.
+     * <p>
+     * If the resource is a {@link CompositeResource}, it appends the children resources.
+     *
+     * @param resources              the resources
+     * @param resource               the resource to add
+     * @param deduplicateDirectories <code>true</code> to de-duplicate directories, <code>false</code> otherwise
+     */
+    public static void appendResource(Collection<Resource> resources, Resource resource, boolean deduplicateDirectories) {
+        if (resource instanceof CompositeResource) {
+            Collection<Resource> childResources = ((CompositeResource) resource).getResources();
+            Set<Resource> added = new HashSet<>();
+            if (deduplicateDirectories) {
+                for (Resource childResource : childResources) {
+                    if (childResource.isDirectory() && !added.add(resource)) continue;
+                    resources.add(childResource);
+                }
+            } else {
+                resources.addAll(childResources);
+            }
+        } else {
+            resources.add(resource);
+        }
+    }
+
+    /**
+     * Throws an exception which indicates whether an operation is not supported.
+     *
+     * @param <T> a fake type
+     * @return a fake value
+     */
+    public static <T> T throwUnsupported() {
+        throw new UnsupportedOperationException("Not supported");
     }
 
     /**

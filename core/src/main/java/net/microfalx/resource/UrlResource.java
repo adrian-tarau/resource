@@ -36,7 +36,7 @@ public class UrlResource extends AbstractResource {
     private Metrics metrics;
 
     /**
-     * Create a new resource from an URL and with a relative path to an arbitrary root.
+     * Create a new resource from a URL and with a relative path to an arbitrary root.
      *
      * @param uri the URI of the resource
      * @return a non-null instance
@@ -111,7 +111,6 @@ public class UrlResource extends AbstractResource {
 
     @Override
     protected final Collection<Resource> doList() {
-        String urlAsString = url.toExternalForm();
         try {
             URLConnection urlConnection = url.openConnection();
             if (urlConnection instanceof JarURLConnection) {
@@ -128,7 +127,7 @@ public class UrlResource extends AbstractResource {
                     name = removeEndSlash(name);
                     int nameDepth = split(name, "/").length;
                     if (name.startsWith(rootName) && !name.equals(rootName) && (nameDepth == rootNameDepth + 1)) {
-                        resources.add(resolve(name, type));
+                        appendResource(resources, get(name, type), true);
                     }
                 }
                 return resources;
@@ -139,7 +138,7 @@ public class UrlResource extends AbstractResource {
                 Collection<Resource> resources = new ArrayList<>();
                 for (File child : children) {
                     Type type = child.isDirectory() ? Type.DIRECTORY : Type.FILE;
-                    resources.add(resolve(child.getName(), type));
+                    appendResource(resources, resolve(child.getName(), type), true);
                 }
                 return resources;
             } else {
@@ -157,23 +156,26 @@ public class UrlResource extends AbstractResource {
     @Override
     public Resource resolve(String path) {
         requireNonNull(path);
-        String _url = addEndSlash(url.toExternalForm()) + path;
-        try {
-            return UrlResource.create(new URL(_url));
-        } catch (MalformedURLException e) {
-            throw new IllegalStateException("Failed to create a child resource for " + _url, e);
-        }
+        Type type = getTypeFromPath(path);
+        return createFromUriString(addEndSlash(url.toExternalForm()) + path, type);
     }
 
     @Override
     public Resource resolve(String path, Type type) {
         requireNonNull(path);
         requireNonNull(type);
-        String _url = addEndSlash(url.toExternalForm()) + path;
+        return createFromUriString(addEndSlash(url.toExternalForm()) + path, type);
+    }
+
+    @Override
+    public Resource get(String path, Type type) {
+        requireNonNull(path);
+        requireNonNull(type);
         try {
-            return UrlResource.create(new URL(_url), type);
-        } catch (MalformedURLException e) {
-            throw new IllegalStateException("Failed to create a child resource for " + _url, e);
+            URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), path, null, null);
+            return createFromUriString(uri.toASCIIString(), type);
+        } catch (URISyntaxException e) {
+            throw new ResourceException("Invalid resource URL for path '" + path + "', original URL '" + url + "'", e);
         }
     }
 
@@ -216,5 +218,20 @@ public class UrlResource extends AbstractResource {
     protected Metrics getMetrics() {
         if (metrics == null) metrics = METRICS.withTag("host", url.getHost());
         return metrics;
+    }
+
+    /**
+     * Creates a new resource from a URL and a type.
+     *
+     * @param url  the URL as string
+     * @param type the type
+     * @return a new instance
+     */
+    protected Resource createFromUriString(String url, Type type) {
+        try {
+            return UrlResource.create(URI.create(url).toURL(), type);
+        } catch (MalformedURLException e) {
+            throw new ResourceException("Invalid resource URL for '" + url + "'", e);
+        }
     }
 }
