@@ -210,7 +210,7 @@ public class UrlResource extends AbstractResource {
         try {
             return url.toURI();
         } catch (URISyntaxException e) {
-            throw new IllegalStateException("URL cannot be converted to URI: " + url.toExternalForm());
+            throw new ResourceException("URL cannot be converted to URI: " + url.toExternalForm(), e);
         }
     }
 

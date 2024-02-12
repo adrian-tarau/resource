@@ -2,6 +2,7 @@ package net.microfalx.resource;
 
 import net.microfalx.lang.ExceptionUtils;
 import net.microfalx.lang.Hashing;
+import net.microfalx.lang.StringUtils;
 import net.microfalx.metrics.Metrics;
 
 import java.io.File;
@@ -30,16 +31,30 @@ public class ResourceUtils {
     public static final String HTTPS_SCHEME = "https";
     public static final String SHARED = "shared";
 
+    public static final String SUB_RESOURCE_SEPARATOR = "#";
+
     public static final int MAX_RETRY_COUNT = 3;
     public static final int MAX_SLEEP_BETWEEN_RETRIES = 10;
 
     public static final byte[] EMPTY_BYTES = new byte[0];
     public static final String SLASH = "/";
 
+    static NullCredential NULL_CREDENTIAL = new NullCredential();
+
     /**
      * Holds all metrics related to resource
      */
     protected static Metrics METRICS = Metrics.of("resource");
+
+    /**
+     * Returns whether the path points to a resource root.
+     *
+     * @param path the path
+     * @return {@code true} if root, {@code false} otherwise
+     */
+    public static boolean isRoot(String path) {
+        return StringUtils.isEmpty(path) || SLASH.equals(path);
+    }
 
     /**
      * Returns whether the URL points to a local file.
@@ -48,7 +63,7 @@ public class ResourceUtils {
      * @return <code>true</code> if a local file, <code>false</code> otherwise
      */
     public static boolean isFileUrl(URL url) {
-        return url.getProtocol() == null || "file".equalsIgnoreCase(url.getProtocol());
+        return url.getProtocol() == null || FILE_SCHEME.equalsIgnoreCase(url.getProtocol());
     }
 
     /**
@@ -58,7 +73,22 @@ public class ResourceUtils {
      * @return <code>true</code> if a local file, <code>false</code> otherwise
      */
     public static boolean isFileUri(URI uri) {
-        return uri.getScheme() == null || "file".equalsIgnoreCase(uri.getScheme());
+        return uri.getScheme() == null || FILE_SCHEME.equalsIgnoreCase(uri.getScheme());
+    }
+
+    /**
+     * Converts an URI which points to a local file to the scheme expected by the local file system.
+     *
+     * @param uri the original URI
+     * @return the normalize URI
+     */
+    public static URI toFileUri(URI uri) {
+        if (uri.getScheme().equalsIgnoreCase(FILE_SCHEME)) return uri;
+        try {
+            return new URI(FILE_SCHEME, uri.getAuthority(), uri.getPath(), null, null);
+        } catch (URISyntaxException e) {
+            throw new ResourceException("Failed to create a local file system URI from " + uri, e);
+        }
     }
 
     /**

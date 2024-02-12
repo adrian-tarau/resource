@@ -17,6 +17,8 @@ import java.util.Collections;
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.StringUtils.addEndSlash;
 import static net.microfalx.resource.ResourceUtils.getTypeFromPath;
+import static net.microfalx.resource.s3.S3Utilities.S3_SCHEME;
+import static net.microfalx.resource.s3.S3Utilities.S3_SECURE_SCHEME2;
 
 public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS3Client> {
 
@@ -229,5 +231,18 @@ public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS
      */
     private Resource createFromUri(String uri, Type type) {
         return S3Resource.create(type, URI.create(uri), getCredential());
+    }
+
+    public static class S3ResourceResolver implements ResourceResolver {
+
+        @Override
+        public boolean supports(URI uri) {
+            return S3_SCHEME.equalsIgnoreCase(uri.getScheme()) || S3_SECURE_SCHEME2.equalsIgnoreCase(uri.getScheme());
+        }
+
+        @Override
+        public Resource resolve(URI uri, Type type) {
+            return S3Resource.create(type, uri, Credential.NA);
+        }
     }
 }

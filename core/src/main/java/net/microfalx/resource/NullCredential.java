@@ -1,4 +1,7 @@
 package net.microfalx.resource;
 
-public class NullCredential implements Credential {
+/**
+ * A credential which means "no credential available".
+ */
+class NullCredential implements Credential {
 }

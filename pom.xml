@@ -54,6 +54,7 @@
         <module>archive</module>
         <module>sftp</module>
         <module>s3</module>
+        <module>rocksdb</module>
     </modules>
 
     <issueManagement>
@@ -75,6 +76,7 @@
         <sshd.version>2.12.0</sshd.version>
         <aws.s3.version>1.12.641</aws.s3.version>
         <jsch.version>0.1.55</jsch.version>
+        <rocksdb.version>8.10.0</rocksdb.version>
         <!-- Tests -->
         <junit.version>5.10.1</junit.version>
         <assertj.version>3.25.1</assertj.version>
@@ -143,6 +145,12 @@
                 <artifactId>tika-core</artifactId>
                 <version>${apache.tika.version}</version>
                 <optional>true</optional>
+            </dependency>
+
+            <dependency>
+                <groupId>org.rocksdb</groupId>
+                <artifactId>rocksdbjni</artifactId>
+                <version>${rocksdb.version}</version>
             </dependency>
 
             <!-- Tests -->

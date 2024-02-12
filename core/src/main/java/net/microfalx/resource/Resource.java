@@ -76,6 +76,13 @@ public interface Resource extends Serializable {
     }
 
     /**
+     * Returns the root resource.
+     *
+     * @return a non-null instance
+     */
+    Resource getRoot();
+
+    /**
      * Returns the resource's parent.
      *
      * @return a non-null instance if the resource has a parent, null otherwise
@@ -423,6 +430,17 @@ public interface Resource extends Serializable {
      * @return a non-null instance
      */
     Resource toFile();
+
+    /**
+     * Returns whether the resource is supported by a local file system.
+     * <p>
+     * At the OS level, the file system could be a network file system but from the perspective of the resource it
+     * is local to the current server.
+     *
+     * @return <code>true</code> if local, <code>false</code>
+     * @see #toFile()
+     */
+    boolean isLocal();
 
     /**
      * Creates a copy of the resource, with a different credential.

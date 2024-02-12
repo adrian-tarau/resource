@@ -19,6 +19,7 @@ import static net.microfalx.lang.ExceptionUtils.throwException;
 import static net.microfalx.lang.IOUtils.*;
 import static net.microfalx.lang.StringUtils.*;
 import static net.microfalx.resource.ResourceUtils.METRICS;
+import static net.microfalx.resource.ResourceUtils.SLASH;
 
 /**
  * A skeleton implementation for a resource.
@@ -37,7 +38,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     private String mimeType = MimeType.APPLICATION_OCTET_STREAM.toString();
     private boolean absolutePath = true;
 
-    private Credential credential = new NullCredential();
+    private Credential credential = Credential.NA;
 
     private Map<String, Object> attributes;
 
@@ -83,6 +84,11 @@ public abstract class AbstractResource implements Resource, Cloneable {
     protected final void setCredential(Credential credential) {
         requireNonNull(credential);
         this.credential = credential;
+    }
+
+    @Override
+    public Resource getRoot() {
+        return get(SLASH, Type.DIRECTORY);
     }
 
     @Override
@@ -301,10 +307,6 @@ public abstract class AbstractResource implements Resource, Cloneable {
         return Collections.unmodifiableCollection(children);
     }
 
-    protected void doCopyFrom() throws IOException {
-        throw new IOException("Not supported");
-    }
-
     protected boolean doWalk(ResourceVisitor visitor, int maxDepth) throws IOException {
         return doWalk(this, this, visitor, 1, maxDepth);
     }
@@ -313,6 +315,11 @@ public abstract class AbstractResource implements Resource, Cloneable {
     public Resource resolve(String path) {
         Type type = ResourceUtils.isDirectory(path) ? Type.DIRECTORY : Type.FILE;
         return resolve(path, type);
+    }
+
+    @Override
+    public Resource resolve(String path, Type type) {
+        return get(getSubPath(path), type);
     }
 
     @Override
@@ -489,6 +496,13 @@ public abstract class AbstractResource implements Resource, Cloneable {
         } else {
             throw new ResourceException(ClassUtils.getName(this) + " cannot be converted to a file resource");
         }
+    }
+
+    @Override
+    public boolean isLocal() {
+        URI uri = toURI();
+        String scheme = uri.getScheme();
+        return scheme == null || "file".equalsIgnoreCase(scheme);
     }
 
     /**

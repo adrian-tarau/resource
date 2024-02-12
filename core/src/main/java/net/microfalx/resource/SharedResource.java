@@ -68,7 +68,7 @@ public class SharedResource extends AbstractResource {
 
     @Override
     public String getFileName() {
-        return getDelegatingResource().getFileName();
+        return getDelegatingResourceWithSymlink().getFileName();
     }
 
     @Override
@@ -83,47 +83,47 @@ public class SharedResource extends AbstractResource {
 
     @Override
     protected InputStream doGetInputStream(boolean raw) throws IOException {
-        return getDelegatingResource().getInputStream(raw);
+        return getDelegatingResourceWithSymlink().getInputStream(raw);
     }
 
     @Override
     protected OutputStream doGetOutputStream() throws IOException {
-        return getDelegatingResource().getOutputStream();
+        return getDelegatingResourceWithSymlink().getOutputStream();
     }
 
     @Override
     protected void doDelete() throws IOException {
-        getDelegatingResource().delete();
+        getDelegatingResourceWithSymlink().delete();
     }
 
     @Override
     protected void doCreate() throws IOException {
-        getDelegatingResource().create();
+        getDelegatingResourceWithSymlink().create();
     }
 
     @Override
     protected boolean doExists() throws IOException {
-        return getDelegatingResource().exists();
+        return getDelegatingResourceWithSymlink().exists();
     }
 
     @Override
     protected long doLastModified() throws IOException {
-        return getDelegatingResource().lastModified();
+        return getDelegatingResourceWithSymlink().lastModified();
     }
 
     @Override
     protected long doLength() throws IOException {
-        return getDelegatingResource().length();
+        return getDelegatingResourceWithSymlink().length();
     }
 
     @Override
     protected Collection<Resource> doList() throws IOException {
-        return getDelegatingResource().list();
+        return getDelegatingResourceWithSymlink().list();
     }
 
     @Override
     protected boolean doWalk(ResourceVisitor visitor, int maxDepth) throws IOException {
-        return getDelegatingResource().walk(visitor, maxDepth);
+        return getDelegatingResourceWithSymlink().walk(visitor, maxDepth);
     }
 
     @Override
@@ -131,10 +131,38 @@ public class SharedResource extends AbstractResource {
         return URI.create(SHARED + ":" + addStartSlash(path));
     }
 
-    private Resource getDelegatingResource() {
+    @Override
+    public Resource toFile() {
+        return getDelegatingResourceWithoutSymlink().toFile().resolve(path, getType());
+    }
+
+    @Override
+    public boolean isLocal() {
+        return getDelegatingResourceWithoutSymlink().isLocal();
+    }
+
+    private Resource getDelegatingResourceWithSymlink() {
+        return getDelegatingResource(true);
+    }
+
+    private Resource getDelegatingResourceWithoutSymlink() {
+        return getDelegatingResource(false);
+    }
+
+    /**
+     * Returns the resource which supports the shared resource.
+     *
+     * @param resolveSymlinks {@code true} to resolve symlinks, {@code false} otherwise
+     * @return a non-null instance
+     */
+    public Resource getDelegatingResource(boolean resolveSymlinks) {
         Resource root = ResourceFactory.getRoot();
         if (root == null) {
             throw new ResourceException("The root of the shared resources is not set");
+        }
+        if (resolveSymlinks) {
+            Resource symlinkedResource = ResourceFactory.resolveSymlink(path, getType());
+            if (symlinkedResource != null) return symlinkedResource;
         }
         return root.resolve(path, getType());
     }

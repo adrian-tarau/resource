@@ -7,14 +7,14 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.ServiceLoader;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.StringUtils.removeEndSlash;
+import static net.microfalx.lang.StringUtils.removeStartSlash;
 import static net.microfalx.resource.ResourceUtils.toUri;
 
 /**
@@ -27,6 +27,7 @@ public class ResourceFactory {
     private static final List<ResourceResolver> resolvers = new CopyOnWriteArrayList<>();
     private static final List<ResourceProcessor> processors = new CopyOnWriteArrayList<>();
     private static final List<MimeTypeResolver> mimeTypeResolvers = new CopyOnWriteArrayList<>();
+    private static final Map<String, Resource> links = new ConcurrentHashMap<>();
 
     private static volatile Resource root;
 
@@ -122,6 +123,39 @@ public class ResourceFactory {
     }
 
     /**
+     * Registers a symlink inside a shared resource which points to a different resource.
+     * <p>
+     * If a symlink is already registered for a given path, not change is made.
+     *
+     * @param path   the symlinked path
+     * @param target the resource where the link delegates all the requests.
+     */
+    public static void registerSymlink(String path, Resource target) {
+        requireNonNull(path);
+        requireNonNull(target);
+        links.putIfAbsent(removeStartSlash(removeEndSlash(path)), target);
+    }
+
+    /**
+     * Resolves a symlink, if one matching the path is registered.
+     *
+     * @param path the requested path
+     * @return the resource, null if the patch does not match a symlinked resource
+     */
+    static Resource resolveSymlink(String path, Resource.Type type) {
+        if (links.isEmpty()) return null;
+        String normalizedPath = removeEndSlash(removeStartSlash(path));
+        String normalizedPathLowerCase = normalizedPath.toLowerCase();
+        for (Map.Entry<String, Resource> entry : links.entrySet()) {
+            if (normalizedPathLowerCase.startsWith(entry.getKey())) {
+                path = removeStartSlash(normalizedPath.substring(entry.getKey().length()));
+                return entry.getValue().resolve(path, type);
+            }
+        }
+        return null;
+    }
+
+    /**
      * Intercepts the input stream of a resource.
      *
      * @param resource    the resource
@@ -174,7 +208,7 @@ public class ResourceFactory {
      */
     public static Resource resolve(URI uri, Credential credential, Resource.Type type) {
         requireNonNull(uri);
-        if (credential == null) credential = new NullCredential();
+        if (credential == null) credential = Credential.NA;
         for (ResourceResolver resolver : getResolvers()) {
             if (resolver.supports(uri)) {
                 Resource resource = resolver.resolve(uri, type);
