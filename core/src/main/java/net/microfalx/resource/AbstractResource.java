@@ -404,9 +404,24 @@ public abstract class AbstractResource implements Resource, Cloneable {
             if (mimeType == null && isNotEmpty(getFileExtension())) {
                 mimeType = URLConnection.guessContentTypeFromName(getFileName());
             }
-            mimeType = defaultIfEmpty(mimeType, "application/octet-stream");
+            mimeType = defaultIfEmpty(mimeType, MimeType.APPLICATION_OCTET_STREAM.getValue());
         }
         return mimeType;
+    }
+
+    @Override
+    public String detectMimeType() {
+        InputStream inputStream;
+        try {
+            inputStream = doGetInputStream(false);
+        } catch (IOException e) {
+            inputStream = new ByteArrayInputStream(ResourceUtils.EMPTY_BYTES);
+        }
+        String detectedMimeType = null;
+        if (inputStream.markSupported()) {
+            detectedMimeType = ResourceFactory.detect(inputStream, getFileName());
+        }
+        return defaultIfEmpty(detectedMimeType, MimeType.APPLICATION_OCTET_STREAM.getValue());
     }
 
     @Override

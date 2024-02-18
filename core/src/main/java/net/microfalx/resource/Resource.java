@@ -304,6 +304,12 @@ public interface Resource extends Serializable {
     String getMimeType();
 
     /**
+     * Returns the mime type (content type) based on the file content.
+     * @return a non-null string
+     */
+    String detectMimeType();
+
+    /**
      * Returns an attribute associated with the resource.
      *
      * @param name the name
