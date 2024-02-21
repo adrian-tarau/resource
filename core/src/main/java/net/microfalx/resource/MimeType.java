@@ -31,13 +31,15 @@ public enum MimeType {
     APPLICATION_JSON("application/json", true),
     APPLICATION_OCTET_STREAM("application/octet-stream", false);
 
-    private boolean text;
-    private String value;
+    private final boolean text;
+    private final String value;
 
     /**
      * Returns a mime type enum based on its string value.
      * <p>
      * If it cannot be resolved, it will return {@link #APPLICATION_OCTET_STREAM}.
+     * <p>
+     * The method also accepts a content type (has an optional character encoding).
      *
      * @param value the mime type (content type)
      * @return a non-null instance
