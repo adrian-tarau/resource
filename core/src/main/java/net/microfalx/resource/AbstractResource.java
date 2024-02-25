@@ -548,7 +548,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     protected Resource doCopyFrom(Resource resource, int depth) throws IOException {
         createParents();
         if (resource.isFile()) {
-            IOUtils.appendStream(getOutputStream(), resource.getInputStream());
+            IOUtils.appendStream(getOutputStream(), resource.getInputStream(true));
         } else {
             throw new ResourceException("Directory copy not supported");
         }
