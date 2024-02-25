@@ -44,7 +44,7 @@ public final class MemoryResource extends AbstractResource {
      */
     public static Resource create(String text) {
         requireNonNull(text);
-        return create(text.getBytes());
+        return create(text.getBytes()).withMimeType(MimeType.TEXT_PLAIN);
     }
 
     /**
@@ -56,7 +56,7 @@ public final class MemoryResource extends AbstractResource {
      */
     public static Resource create(String text, String fileName) {
         requireNonNull(text);
-        return create(text.getBytes(), fileName);
+        return create(text.getBytes(), fileName).withMimeType(MimeType.TEXT_PLAIN);
     }
 
     /**
@@ -69,7 +69,7 @@ public final class MemoryResource extends AbstractResource {
      */
     public static Resource create(String text, String fileName, long lastModified) {
         requireNonNull(text);
-        return create(text.getBytes(), fileName, lastModified);
+        return create(text.getBytes(), fileName, lastModified).withMimeType(MimeType.TEXT_PLAIN);
     }
 
     /**
