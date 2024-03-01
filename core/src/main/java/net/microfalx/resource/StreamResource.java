@@ -2,6 +2,7 @@ package net.microfalx.resource;
 
 
 import net.microfalx.lang.ClassUtils;
+import net.microfalx.metrics.Metrics;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +25,8 @@ import static net.microfalx.lang.StringUtils.isEmpty;
 public final class StreamResource extends AbstractResource {
 
     static final long serialVersionUID = 4387627536253212324L;
+
+    private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("Stream");
 
     private final InputStream inputStream;
     private final String fileName;
@@ -158,5 +161,10 @@ public final class StreamResource extends AbstractResource {
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Override
+    protected Metrics getMetrics() {
+        return METRICS;
     }
 }

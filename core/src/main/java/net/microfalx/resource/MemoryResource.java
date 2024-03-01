@@ -1,5 +1,7 @@
 package net.microfalx.resource;
 
+import net.microfalx.metrics.Metrics;
+
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -17,6 +19,8 @@ import static net.microfalx.lang.IOUtils.getInputStreamAsBytes;
 public final class MemoryResource extends AbstractResource {
 
     static final long serialVersionUID = -2384762736253212324L;
+
+    private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("Memory");
 
     private byte[] data;
     private final String fileName;
@@ -173,6 +177,11 @@ public final class MemoryResource extends AbstractResource {
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Override
+    protected Metrics getMetrics() {
+        return METRICS;
     }
 
     class MemoryOutputStream extends ByteArrayOutputStream {

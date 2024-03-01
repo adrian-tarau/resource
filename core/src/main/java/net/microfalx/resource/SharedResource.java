@@ -1,5 +1,7 @@
 package net.microfalx.resource;
 
+import net.microfalx.metrics.Metrics;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,6 +19,8 @@ import static net.microfalx.resource.ResourceUtils.hash;
  * @see ResourceFactory#getRoot()
  */
 public class SharedResource extends AbstractResource {
+
+    private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("Shared");
 
     private final String path;
 
@@ -165,6 +169,11 @@ public class SharedResource extends AbstractResource {
             if (symlinkedResource != null) return symlinkedResource;
         }
         return root.resolve(path, getType());
+    }
+
+    @Override
+    protected Metrics getMetrics() {
+        return METRICS;
     }
 
     public static class SharedResourceResolver implements ResourceResolver {

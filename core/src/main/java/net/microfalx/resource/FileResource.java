@@ -1,5 +1,7 @@
 package net.microfalx.resource;
 
+import net.microfalx.metrics.Metrics;
+
 import java.io.*;
 import java.net.URI;
 import java.nio.file.FileVisitOption;
@@ -25,6 +27,8 @@ import static net.microfalx.resource.ResourceUtils.hash;
 public class FileResource extends AbstractResource {
 
     static final long serialVersionUID = 8384627536253212324L;
+
+    private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("File");
 
     private final File file;
 
@@ -260,6 +264,11 @@ public class FileResource extends AbstractResource {
     @Override
     public final Resource toFile() {
         return this;
+    }
+
+    @Override
+    protected Metrics getMetrics() {
+        return METRICS;
     }
 
     public static class FileResourceResolver implements ResourceResolver {

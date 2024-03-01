@@ -1,5 +1,6 @@
 package net.microfalx.resource.archive;
 
+import net.microfalx.metrics.Metrics;
 import net.microfalx.resource.*;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -28,6 +29,8 @@ import static net.microfalx.resource.ResourceUtils.throwUnsupported;
  * A resource implementation on top of Apache Common Compress.
  */
 public final class ArchiveResource extends AbstractResource {
+
+    private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("File");
 
     private final Resource resource;
     private Type archiveType;
@@ -178,6 +181,11 @@ public final class ArchiveResource extends AbstractResource {
     @Override
     public boolean isWritable() {
         return false;
+    }
+
+    @Override
+    protected Metrics getMetrics() {
+        return METRICS;
     }
 
     private static ArchiveResource.Type fromFileName(String fileName) {

@@ -30,6 +30,8 @@ public class UrlResource extends AbstractResource {
 
     private static final Logger LOGGER = Logger.getLogger(UrlResource.class.getName());
 
+    private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("URL");
+
     private static final long serialVersionUID = -2384627536253212324L;
 
     private final URL url;

@@ -44,7 +44,7 @@ public class ResourceUtils {
     /**
      * Holds all metrics related to resource
      */
-    protected static Metrics METRICS = Metrics.of("resource");
+    public static Metrics METRICS = Metrics.of("Resource");
 
     /**
      * Returns whether the path points to a resource root.

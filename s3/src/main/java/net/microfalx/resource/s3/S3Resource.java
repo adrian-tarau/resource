@@ -6,6 +6,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import net.microfalx.lang.FileUtils;
+import net.microfalx.metrics.Metrics;
 import net.microfalx.resource.*;
 
 import java.io.IOException;
@@ -21,6 +22,8 @@ import static net.microfalx.resource.s3.S3Utilities.S3_SCHEME;
 import static net.microfalx.resource.s3.S3Utilities.S3_SECURE_SCHEME2;
 
 public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS3Client> {
+
+    private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("S3");
 
     private final URI uri;
 
@@ -188,6 +191,11 @@ public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS
     @Override
     protected IOException translateException(Exception e) {
         return null;
+    }
+
+    @Override
+    protected Metrics getMetrics() {
+        return METRICS;
     }
 
     /**

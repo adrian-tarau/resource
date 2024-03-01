@@ -2,6 +2,7 @@ package net.microfalx.resource.rocksdb;
 
 import net.microfalx.lang.FileUtils;
 import net.microfalx.lang.StringUtils;
+import net.microfalx.metrics.Metrics;
 import net.microfalx.resource.*;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
@@ -32,6 +33,8 @@ public class RocksDbResource extends AbstractResource {
 
     private static final int HEADER_SIZE = 16;
     private static final byte[] EMPTY_BUFFER = new byte[0];
+
+    private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("ClassPath");
 
     private final Resource resource;
     private final String path;
@@ -209,6 +212,11 @@ public class RocksDbResource extends AbstractResource {
         } catch (URISyntaxException e) {
             throw new ResourceException("Failed to create resource URI for database " + resource + "#" + path, e);
         }
+    }
+
+    @Override
+    protected Metrics getMetrics() {
+        return METRICS;
     }
 
     private RocksDB getDb() {

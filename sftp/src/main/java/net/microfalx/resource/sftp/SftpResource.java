@@ -2,6 +2,7 @@ package net.microfalx.resource.sftp;
 
 import com.jcraft.jsch.*;
 import net.microfalx.lang.FileUtils;
+import net.microfalx.metrics.Metrics;
 import net.microfalx.resource.*;
 
 import java.io.*;
@@ -23,6 +24,8 @@ import static net.microfalx.resource.ResourceUtils.getTypeFromPath;
 public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp> {
 
     private static final Logger LOGGER = Logger.getLogger(SftpResource.class.getName());
+
+    private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("S3");
 
     private final URI uri;
 
@@ -241,6 +244,11 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     @Override
     protected boolean isValid(Session session) throws Exception {
         return session.isConnected();
+    }
+
+    @Override
+    protected Metrics getMetrics() {
+        return METRICS;
     }
 
     @Override

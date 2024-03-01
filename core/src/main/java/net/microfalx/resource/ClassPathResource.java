@@ -28,7 +28,7 @@ public final class ClassPathResource extends UrlResource {
 
     private final String path;
 
-    private static Metrics metrics = METRICS.withGroup("classpath");
+    private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("ClassPath");
 
     /**
      * Create a new file resource from a resource in the class path.
@@ -181,7 +181,7 @@ public final class ClassPathResource extends UrlResource {
 
     @Override
     protected Metrics getMetrics() {
-        return metrics;
+        return METRICS;
     }
 
     static Collection<URL> toCollection(Enumeration<URL> enumeration) {

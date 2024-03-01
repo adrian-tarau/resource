@@ -115,12 +115,12 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final InputStream getInputStream(boolean raw) throws IOException {
-        return time("get_input", () -> getBufferedInputStream(process(getBufferedInputStream(doGetInputStream(raw)), raw)));
+        return time("Get Input", () -> getBufferedInputStream(process(getBufferedInputStream(doGetInputStream(raw)), raw)));
     }
 
     @Override
     public final OutputStream getOutputStream() throws IOException {
-        return time("get_output", () -> getBufferedOutputStream(doGetOutputStream()));
+        return time("Get Output", () -> getBufferedOutputStream(doGetOutputStream()));
     }
 
     /**
@@ -161,7 +161,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final Resource create() throws IOException {
-        return time("create", () -> {
+        return time("Create", () -> {
             doCreate();
             return this;
         });
@@ -169,7 +169,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final Resource createParents() throws IOException {
-        return time("createParents", () -> {
+        return time("Create Parents", () -> {
             doCreateParents();
             return this;
         });
@@ -177,7 +177,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final Resource delete() throws IOException {
-        return time("delete", () -> {
+        return time("Delete", () -> {
             if (isDirectory()) empty();
             doDelete();
             return this;
@@ -186,7 +186,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final Collection<Resource> list() throws IOException {
-        return time("list", this::doList);
+        return time("List", this::doList);
     }
 
     @Override
@@ -197,7 +197,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public final boolean walk(ResourceVisitor visitor, int maxDepth) throws IOException {
         if (isFile()) return true;
-        return time("walk", () -> doWalk(visitor, maxDepth));
+        return time("Walk", () -> doWalk(visitor, maxDepth));
     }
 
     @Override
@@ -208,7 +208,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public final Resource copyFrom(Resource resource, int depth) {
         requireNonNull(resource);
-        return time("copy", () -> {
+        return time("Copy", () -> {
             Resource self = doCopyFrom(resource, depth);
             copyPropertiesFrom(resource);
             return self;
@@ -218,7 +218,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public Resource copyPropertiesFrom(Resource resource) {
         requireNonNull(resource);
-        return time("copy-properties", () -> {
+        return time("Copy Properties", () -> {
             this.mimeType = resource.getMimeType();
             if (resource instanceof AbstractResource) {
                 AbstractResource otherResource = (AbstractResource) resource;
@@ -235,7 +235,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public final Resource empty() throws IOException {
         if (getType() != Type.DIRECTORY) return this;
-        return time("empty", () -> {
+        return time("Empty", () -> {
             walk((parent, child) -> {
                 child.delete();
                 return true;
@@ -246,17 +246,17 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final long lastModified() throws IOException {
-        return time("last_modified", this::doLastModified);
+        return time("Last Modified", this::doLastModified);
     }
 
     @Override
     public final long length() throws IOException {
-        return time("length", this::doLength);
+        return time("Length", this::doLength);
     }
 
     @Override
     public final boolean exists() throws IOException {
-        return time("exists", this::doExists);
+        return time("Exists", this::doExists);
     }
 
     @Override
@@ -565,7 +565,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
      */
     protected final <T> T time(String name, Callable<T> callable) {
         Metrics metrics = getMetrics();
-        return metrics.time(name, callable);
+        return metrics.timeCallable(name, callable);
     }
 
     /**
