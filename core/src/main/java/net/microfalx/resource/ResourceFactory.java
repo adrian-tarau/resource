@@ -5,6 +5,7 @@ import net.microfalx.lang.JvmUtils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
@@ -179,8 +180,9 @@ public class ResourceFactory {
      * @param inputStream the input stream
      * @param fileName    the file name
      * @return the mime type
+     * @throws IOException I/O exception
      */
-    public static String detect(InputStream inputStream, String fileName) {
+    public static String detect(InputStream inputStream, String fileName) throws IOException {
         requireNonNull(fileName);
         requireNonNull(inputStream);
 

@@ -3,6 +3,7 @@ package net.microfalx.resource;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +33,7 @@ class ResourceFactoryTest {
     }
 
     @Test
-    void mimeType() {
+    void mimeType() throws IOException {
         assertEquals(MimeType.APPLICATION_OCTET_STREAM.toString(), ResourceFactory.detect(new ByteArrayInputStream(new byte[100]), "demo.bin"));
         assertEquals(MimeType.TEXT_PLAIN.toString(), ResourceFactory.detect(new ByteArrayInputStream("Text".getBytes()), "demo.bin"));
         assertEquals(MimeType.TEXT_PLAIN.toString(), ResourceFactory.detect(new ByteArrayInputStream(new byte[100]), "demo.txt"));

@@ -1,5 +1,6 @@
 package net.microfalx.resource;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -14,5 +15,5 @@ public interface MimeTypeResolver {
      * @param fileName    the file name
      * @return the mime type, {@code NULL} if cannot provide one
      */
-    String detect(InputStream inputStream, String fileName);
+    String detect(InputStream inputStream, String fileName) throws IOException;
 }

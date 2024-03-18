@@ -121,6 +121,17 @@ public interface Resource extends Serializable {
     String getPath();
 
     /**
+     * Returns the fragment associated with the resources.
+     * <p>
+     * Resources based on URIs can have a fragment associated with them, which represent a relative position within
+     * a resource. Most of the time, the fragment refers to a sub-resource within the parent resource.
+     *
+     * @return the fragment, null if not defined
+     * @see URI#getFragment()
+     */
+    String getFragment();
+
+    /**
      * Returns whether the path represents an absolute path inside the file system supporting this resource.
      *
      * @return {@code true} if absolute, {@code false} otherise
@@ -305,6 +316,9 @@ public interface Resource extends Serializable {
 
     /**
      * Returns the mime type (content type) based on the file content.
+     * <p>
+     * If the content cannot be extracted, it tries the file extension.
+     *
      * @return a non-null string
      */
     String detectMimeType();
@@ -504,6 +518,14 @@ public interface Resource extends Serializable {
      * @return a new instance
      */
     Resource withMimeType(MimeType mimeType);
+
+    /**
+     * Creates a copy of the resource, with a different fragment.
+     *
+     * @param fragment the name
+     * @return a new instance
+     */
+    Resource withFragment(String fragment);
 
     /**
      * An enum for a resource type

@@ -10,7 +10,7 @@ import java.net.URI;
 import static net.microfalx.lang.IOUtils.getInputStreamAsBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class SharedResourceTest extends AbstractResourceTestCase {
+class lSharedResourceTest extends AbstractResourceTestCase {
 
     @BeforeEach
     void before() {

@@ -1,6 +1,7 @@
 package net.microfalx.resource.archive;
 
 import net.microfalx.resource.ClassPathResource;
+import net.microfalx.resource.Resource;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -25,6 +26,20 @@ class ArchiveResourceTest {
     void fromFileName() {
         assertEquals(ArchiveResource.Type.BZIP2, ArchiveResource.fromExtension(ClassPathResource.file("file1.txt.bz2").toURI()));
         assertEquals(ArchiveResource.Type.SEVEN_Z, ArchiveResource.fromExtension(fromFile("sample.7z")));
+    }
+
+    @Test
+    void fromZipFileWithReference() throws IOException {
+        Resource resource = fromFile("sample.zip").withFragment("file1.txt");
+        assertEquals("file1.txt", resource.getFileName());
+        assertEquals("Test", resource.loadAsString());
+    }
+
+    @Test
+    void fromTarFileWithReference() throws IOException {
+        Resource resource = fromFile("sample.tar").withFragment("file1.txt");
+        assertEquals("file1.txt", resource.getFileName());
+        assertEquals("Test", resource.loadAsString());
     }
 
     @Test

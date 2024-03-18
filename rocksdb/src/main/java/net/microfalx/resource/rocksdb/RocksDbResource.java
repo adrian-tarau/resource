@@ -275,7 +275,8 @@ public class RocksDbResource extends AbstractResource {
         @Override
         public Resource resolve(URI uri, Resource.Type type) {
             File directory = new File(ResourceUtils.toFileUri(uri));
-            return RocksDbResource.create(FileResource.directory(directory), uri.getRawFragment(), type);
+            return RocksDbResource.create(FileResource.directory(directory), uri.getRawFragment(), type)
+                    .withFragment(uri.getFragment());
         }
     }
 }

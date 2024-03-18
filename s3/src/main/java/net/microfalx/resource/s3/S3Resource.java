@@ -250,7 +250,7 @@ public class S3Resource extends AbstractStatefulResource<AmazonS3Client, AmazonS
 
         @Override
         public Resource resolve(URI uri, Type type) {
-            return S3Resource.create(type, uri, Credential.NA);
+            return S3Resource.create(type, uri, Credential.NA).withFragment(uri.getFragment());
         }
     }
 }

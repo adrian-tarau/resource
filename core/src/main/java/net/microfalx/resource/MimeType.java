@@ -29,6 +29,7 @@ public enum MimeType {
     FONT("font/*", false),
 
     APPLICATION_JSON("application/json", true),
+    APPLICATION_SQL("application/sql", true),
     APPLICATION_OCTET_STREAM("application/octet-stream", false);
 
     private final boolean text;

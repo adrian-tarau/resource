@@ -1,23 +1,22 @@
 package net.microfalx.resource;
 
-import net.microfalx.lang.ClassUtils;
-import net.microfalx.lang.FileUtils;
-import net.microfalx.lang.IOUtils;
+import net.microfalx.lang.*;
 import net.microfalx.metrics.Metrics;
 
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Callable;
 
+import static java.net.URLConnection.guessContentTypeFromName;
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.ExceptionUtils.throwException;
 import static net.microfalx.lang.IOUtils.*;
 import static net.microfalx.lang.StringUtils.*;
+import static net.microfalx.resource.MimeType.APPLICATION_OCTET_STREAM;
 import static net.microfalx.resource.ResourceUtils.METRICS;
 import static net.microfalx.resource.ResourceUtils.SLASH;
 
@@ -35,8 +34,9 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     private String name;
     private String description;
-    private String mimeType = MimeType.APPLICATION_OCTET_STREAM.toString();
+    private String mimeType;
     private boolean absolutePath = true;
+    private String fragment;
 
     private Credential credential = Credential.NA;
 
@@ -45,7 +45,6 @@ public abstract class AbstractResource implements Resource, Cloneable {
     protected AbstractResource(Type type, String id) {
         requireNonNull(type);
         requireNonNull(id);
-
         this.type = type;
         this.id = id;
     }
@@ -222,6 +221,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
             this.mimeType = resource.getMimeType();
             if (resource instanceof AbstractResource) {
                 AbstractResource otherResource = (AbstractResource) resource;
+                this.name = otherResource.name;
                 this.description = otherResource.description;
                 if (otherResource.attributes != null) {
                     if (this.attributes == null) this.attributes = new HashMap<>();
@@ -353,13 +353,11 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public final String getPath(Resource resource) {
         requireNonNull(resource);
-
-        String resourcePath = removeEndSlash(resource.toURI().toASCIIString());
+        String resourcePath = removeEndSlash(UriUtils.removeFragment(resource.toURI()).toASCIIString());
         String path = removeEndSlash(this.toURI().toASCIIString());
         if (path.length() > resourcePath.length()) {
             return path.substring(resourcePath.length() + 1);
         }
-
         return EMPTY_STRING;
     }
 
@@ -381,6 +379,20 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
+    public final String getFragment() {
+        return fragment;
+    }
+
+    /**
+     * Changes the fragment associated with the resource
+     *
+     * @param fragment the fragment
+     */
+    protected final void setFragment(String fragment) {
+        this.fragment = fragment;
+    }
+
+    @Override
     public final boolean isAbsolutePath() {
         return absolutePath;
     }
@@ -391,37 +403,25 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final String getMimeType() {
-        if (mimeType == null) {
-            InputStream inputStream;
-            try {
-                inputStream = doGetInputStream(false);
-            } catch (IOException e) {
-                inputStream = new ByteArrayInputStream(ResourceUtils.EMPTY_BYTES);
-            }
-            if (inputStream.markSupported()) {
-                mimeType = ResourceFactory.detect(inputStream, getFileName());
-            }
-            if (mimeType == null && isNotEmpty(getFileExtension())) {
-                mimeType = URLConnection.guessContentTypeFromName(getFileName());
-            }
-            mimeType = defaultIfEmpty(mimeType, MimeType.APPLICATION_OCTET_STREAM.getValue());
-        }
+        if (mimeType == null) mimeType = detectMimeType();
         return mimeType;
     }
 
     @Override
     public String detectMimeType() {
-        InputStream inputStream;
+        String mimeType = null;
+        InputStream inputStream = null;
         try {
             inputStream = doGetInputStream(false);
+            mimeType = ResourceFactory.detect(inputStream, getFileName());
         } catch (IOException e) {
-            inputStream = new ByteArrayInputStream(ResourceUtils.EMPTY_BYTES);
+            // if it cannot resolve the stream, try to file name
+        } finally {
+            IOUtils.closeQuietly(inputStream);
         }
-        String detectedMimeType = null;
-        if (inputStream.markSupported()) {
-            detectedMimeType = ResourceFactory.detect(inputStream, getFileName());
-        }
-        return defaultIfEmpty(detectedMimeType, MimeType.APPLICATION_OCTET_STREAM.getValue());
+        if (mimeType == null && isNotEmpty(getFileExtension())) return guessContentTypeFromName(getFileName());
+        if (StringUtils.isEmpty(mimeType)) mimeType = APPLICATION_OCTET_STREAM.getValue();
+        return mimeType;
     }
 
     @Override
@@ -455,10 +455,21 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public Resource withMimeType(MimeType mimeType) {
+    public final Resource withMimeType(MimeType mimeType) {
         AbstractResource copy = copy();
-        copy.mimeType = mimeType.toString();
+        copy.mimeType = mimeType != null ? mimeType.toString() : null;
         return copy;
+    }
+
+    @Override
+    public final Resource withFragment(String fragment) {
+        if (StringUtils.isEmpty(fragment)) {
+            return this;
+        } else {
+            AbstractResource copy = copy();
+            copy.fragment = fragment;
+            return copy;
+        }
     }
 
     @Override
@@ -580,6 +591,24 @@ public abstract class AbstractResource implements Resource, Cloneable {
         } catch (CloneNotSupportedException e) {
             return throwException(e);
         }
+    }
+
+    /**
+     * Returns whether the resource has a fragment attached to it.
+     *
+     * @return {@code true} if a fragment is present, {@code false} otherwise
+     */
+    protected final boolean hasFragment() {
+        return StringUtils.isNotEmpty(getFragment());
+    }
+
+    /**
+     * Create an URI for this resource without the fragment.
+     *
+     * @return a non-null instance
+     */
+    protected final URI toURINoFragment() {
+        return UriUtils.removeFragment(toURI());
     }
 
     /**

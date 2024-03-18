@@ -304,7 +304,8 @@ public final class ClassPathResource extends UrlResource {
         @Override
         public Resource resolve(URI uri, Resource.Type type) {
             requireNonNull(uri);
-            return type != null ? ClassPathResource.create(uri.getPath(), type) : ClassPathResource.create(uri.getPath());
+            Resource resource= type != null ? ClassPathResource.create(uri.getPath(), type) : ClassPathResource.create(uri.getPath());
+            return resource.withFragment(uri.getFragment());
         }
     }
 }

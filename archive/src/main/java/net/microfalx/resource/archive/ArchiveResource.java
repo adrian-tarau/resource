@@ -1,5 +1,6 @@
 package net.microfalx.resource.archive;
 
+import net.microfalx.lang.FileUtils;
 import net.microfalx.metrics.Metrics;
 import net.microfalx.resource.*;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -11,6 +12,7 @@ import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 
 import java.io.BufferedInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.module.ResolutionException;
@@ -18,11 +20,15 @@ import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.ExceptionUtils.throwException;
 import static net.microfalx.lang.IOUtils.getUnclosableInputStream;
 import static net.microfalx.lang.StringUtils.removeEndSlash;
+import static net.microfalx.lang.StringUtils.removeStartSlash;
+import static net.microfalx.lang.UriUtils.removeFragment;
 import static net.microfalx.resource.ResourceUtils.throwUnsupported;
 
 /**
@@ -42,7 +48,18 @@ public final class ArchiveResource extends AbstractResource {
     /**
      * Create a new archive resource from another resource.
      *
-     * @param resource the URI of the resource
+     * @param uri the URI of the resource
+     * @return a non-null instance
+     */
+    public static Resource create(URI uri) {
+        Resource resource = ResourceFactory.resolve(uri);
+        return create(resource, Type.AUTO);
+    }
+
+    /**
+     * Create a new archive resource from another resource.
+     *
+     * @param resource the resource
      * @return a non-null instance
      */
     public static Resource create(Resource resource) {
@@ -59,7 +76,6 @@ public final class ArchiveResource extends AbstractResource {
      */
     public static Type fromExtension(URI uri) {
         requireNonNull(uri);
-
         return fromFileName(uri.getPath());
     }
 
@@ -73,7 +89,6 @@ public final class ArchiveResource extends AbstractResource {
      */
     public static Type fromExtension(Resource resource) {
         requireNonNull(resource);
-
         return fromFileName(resource.getFileName());
     }
 
@@ -86,16 +101,15 @@ public final class ArchiveResource extends AbstractResource {
     public static Resource create(Resource resource, Type type) {
         requireNonNull(resource);
         requireNonNull(type);
-
         if (resource.isDirectory()) throw new ResolutionException("An archive file is required to create a resource");
         return new ArchiveResource(resource, type);
     }
 
     private ArchiveResource(Resource resource, Type type) {
         super(type.getType(), resource.getId());
-
         this.resource = resource;
         this.archiveType = type;
+        setFragment(resource.getFragment());
     }
 
     /**
@@ -110,17 +124,25 @@ public final class ArchiveResource extends AbstractResource {
 
     @Override
     public String getFileName() {
-        return resource.getFileName();
+        if (hasFragment()) {
+            return FileUtils.getFileName(getFragment());
+        } else {
+            return resource.getFileName();
+        }
     }
 
     @Override
     public Resource resolve(String path, Resource.Type type) {
-        return throwUnsupported();
+        return get(path, type);
     }
 
     @Override
     public Resource get(String path, Resource.Type type) {
-        return throwUnsupported();
+        checkType(type);
+        if (hasFragment()) {
+            throw new ResourceException("Cannot resolve an archive entry (" + path + ") from an archive entry (" + toURI() + ")");
+        }
+        return ArchiveResource.create(resource).withFragment(path);
     }
 
     @Override
@@ -130,16 +152,23 @@ public final class ArchiveResource extends AbstractResource {
 
     @Override
     protected InputStream doGetInputStream(boolean raw) throws IOException {
-        Type archiveType = getArchiveType();
-        if (!archiveType.isContainer() && !raw) {
-            try {
-                CompressorInputStream compressorInputStream = new CompressorStreamFactory().createCompressorInputStream(resource.getInputStream(true));
-                return new BufferedInputStream(compressorInputStream, BUFFER_SIZE);
-            } catch (CompressorException e) {
-                throw new ResourceException(e.getMessage(), e);
-            }
+        if (!resource.exists()) {
+            throw new FileNotFoundException("Archive '" + toURINoFragment() + "' does not exist");
+        }
+        if (hasFragment()) {
+            return localEntryInputStream(getFragment());
         } else {
-            return resource.getInputStream();
+            Type archiveType = getArchiveType();
+            if (!archiveType.isContainer() && !raw) {
+                try {
+                    CompressorInputStream compressorInputStream = new CompressorStreamFactory().createCompressorInputStream(resource.getInputStream(true));
+                    return new BufferedInputStream(compressorInputStream, BUFFER_SIZE);
+                } catch (CompressorException e) {
+                    throw new ResourceException(e.getMessage(), e);
+                }
+            } else {
+                return resource.getInputStream();
+            }
         }
     }
 
@@ -152,12 +181,7 @@ public final class ArchiveResource extends AbstractResource {
     protected boolean doWalk(ResourceVisitor visitor, int maxDepth) throws IOException {
         Type archiveType = getArchiveType();
         if (archiveType.isContainer()) {
-            ArchiveInputStream stream;
-            try {
-                stream = new ArchiveStreamFactory().createArchiveInputStream(resource.getInputStream(true));
-            } catch (ArchiveException e) {
-                throw new ResourceException("Failed to open archive '" + resource.toURI() + "'");
-            }
+            ArchiveInputStream stream = openArchiveStream();
             boolean completed = true;
             for (; ; ) {
                 ArchiveEntry entry = stream.getNextEntry();
@@ -188,13 +212,60 @@ public final class ArchiveResource extends AbstractResource {
         return METRICS;
     }
 
-    private static ArchiveResource.Type fromFileName(String fileName) {
-        if (fileName == null) return Type.AUTO;
-        fileName = fileName.toLowerCase();
-        for (Map.Entry<String, Type> entry : extensionToType.entrySet()) {
-            if (fileName.endsWith(entry.getKey())) return entry.getValue();
+    private InputStream localEntryInputStream(String path) throws IOException {
+        Type archiveType = getArchiveType();
+        if (!archiveType.isContainer()) {
+            throw new ResourceException("Archive '" + toURINoFragment() + "' is not a container");
         }
-        return Type.AUTO;
+        path = removeStartSlash(path);
+        if (archiveType.isRandomAccess()) {
+            return localEntryInputStreamRandomAccess(path);
+        } else {
+            return localEntryInputStreamSequenceAccess(path);
+        }
+    }
+
+    private InputStream localEntryInputStreamRandomAccess(String path) throws IOException {
+        Type archiveType = getArchiveType();
+        if (archiveType.equals(Type.ZIP)) {
+            FileResource fileResource = (FileResource) resource.toFile();
+            ZipFile zipFile = new ZipFile(fileResource.getFile());
+            ZipEntry entry = zipFile.getEntry(path);
+            if (entry != null) {
+                return zipFile.getInputStream(entry);
+            } else {
+                return throwEntryNotFound(path);
+            }
+        } else {
+            throw new ResourceException("Unsupported random access to archive '" + toURINoFragment() + "'");
+        }
+    }
+
+    private InputStream localEntryInputStreamSequenceAccess(String path) throws IOException {
+        InputStream inputStream = null;
+        ArchiveInputStream stream = openArchiveStream();
+        for (; ; ) {
+            ArchiveEntry entry = stream.getNextEntry();
+            if (entry == null) break;
+            if (!entry.isDirectory() && path.equalsIgnoreCase(removeStartSlash(entry.getName()))) {
+                inputStream = stream;
+                break;
+            }
+        }
+        if (inputStream == null) throwEntryNotFound(path);
+        return inputStream;
+    }
+
+    private <T> T throwEntryNotFound(String path) {
+        throw new ResourceException("An archive entry '" + path + "' does not exists in archive '" + removeFragment(toURI()) + "'");
+    }
+
+    private ArchiveInputStream openArchiveStream() throws IOException {
+        try {
+            return new ArchiveStreamFactory().createArchiveInputStream(resource.getInputStream(true));
+        } catch (ArchiveException e) {
+            throw new ResourceException("Failed to open archive '" + resource.toURI() + "'", e);
+        }
     }
 
     private Type detect() {
@@ -206,7 +277,11 @@ public final class ArchiveResource extends AbstractResource {
                 type = CompressorStreamFactory.detect(inputStream);
             } catch (CompressorException e) {
                 inputStream.reset();
-                type = ArchiveStreamFactory.detect(inputStream);
+                try {
+                    type = ArchiveStreamFactory.detect(inputStream);
+                } finally {
+                    inputStream.reset();
+                }
             }
         } catch (Exception e) {
             return throwException(e);
@@ -214,6 +289,20 @@ public final class ArchiveResource extends AbstractResource {
         Type discoveredType = libTypeToType.get(type);
         if (discoveredType == null) throw new ResolutionException("Unknown archive type for " + toURI());
         return discoveredType;
+    }
+
+    private void checkType(Resource.Type type) {
+        if (type == Resource.Type.DIRECTORY)
+            throw new ResolutionException("An archive file is required to create a resource");
+    }
+
+    private static ArchiveResource.Type fromFileName(String fileName) {
+        if (fileName == null) return Type.AUTO;
+        fileName = fileName.toLowerCase();
+        for (Map.Entry<String, Type> entry : extensionToType.entrySet()) {
+            if (fileName.endsWith(entry.getKey())) return entry.getValue();
+        }
+        return Type.AUTO;
     }
 
     private class ArchiveEntryResource extends AbstractResource {
@@ -269,35 +358,41 @@ public final class ArchiveResource extends AbstractResource {
 
     public enum Type {
 
-        AUTO(false),
-        BROTLI(false),
-        BZIP2(false),
-        GZIP(false),
-        PACK200(false),
-        XZ(false),
-        LZMA(false),
-        SNAPPY_FRAMED(false),
-        SNAPPY_RAW(false),
-        DEFLATE(false),
-        DEFLATE64(false),
-        LZ4_BLOCK(false),
-        LZ4_FRAMED(false),
-        Z(false),
-        ZSTANDARD(false),
+        AUTO(false, false),
+        BROTLI(false, false),
+        BZIP2(false, false),
+        GZIP(false, false),
+        PACK200(false, false),
+        XZ(false, false),
+        LZMA(false, false),
+        SNAPPY_FRAMED(false, false),
+        SNAPPY_RAW(false, false),
+        DEFLATE(false, false),
+        DEFLATE64(false, false),
+        LZ4_BLOCK(false, false),
+        LZ4_FRAMED(false, false),
+        Z(false, false),
+        ZSTANDARD(false, false),
 
-        ZIP(true),
-        JAR(true),
-        TAR(true),
-        SEVEN_Z(true);
+        ZIP(true, true),
+        JAR(true, true),
+        TAR(true, false),
+        SEVEN_Z(true, false);
 
         private boolean container;
+        private boolean randomAccess;
 
-        Type(boolean container) {
+        Type(boolean container, boolean randomAccess) {
             this.container = container;
+            this.randomAccess = randomAccess;
         }
 
         public boolean isContainer() {
             return container;
+        }
+
+        public boolean isRandomAccess() {
+            return randomAccess;
         }
 
         public Resource.Type getType() {

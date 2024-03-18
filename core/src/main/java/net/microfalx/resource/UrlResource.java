@@ -74,6 +74,7 @@ public class UrlResource extends AbstractResource {
     protected UrlResource(Type type, String id, URL url) {
         super(type, id);
         this.url = url;
+        setFragment(url.getRef());
     }
 
     @Override
@@ -180,6 +181,7 @@ public class UrlResource extends AbstractResource {
             throw new ResourceException("Invalid resource URL for path '" + path + "', original URL '" + url + "'", e);
         }
     }
+
 
     @Override
     protected final long doLastModified() {

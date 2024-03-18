@@ -23,7 +23,7 @@ public class ArchiveResourceResolver implements ResourceResolver {
         FORWARD.set(Boolean.TRUE);
         try {
             Resource resource = ResourceFactory.resolve(uri);
-            return ArchiveResource.create(resource);
+            return ArchiveResource.create(resource).withFragment(uri.getFragment());
         } finally {
             FORWARD.remove();
         }

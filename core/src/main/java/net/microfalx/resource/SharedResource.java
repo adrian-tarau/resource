@@ -1,5 +1,6 @@
 package net.microfalx.resource;
 
+import net.microfalx.lang.StringUtils;
 import net.microfalx.metrics.Metrics;
 
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.net.URI;
 import java.util.Collection;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.StringUtils.EMPTY_STRING;
 import static net.microfalx.lang.StringUtils.addStartSlash;
 import static net.microfalx.resource.ResourceUtils.SHARED;
 import static net.microfalx.resource.ResourceUtils.hash;
@@ -23,6 +25,7 @@ public class SharedResource extends AbstractResource {
     private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("Shared");
 
     private final String path;
+    private String fragment;
 
     /**
      * Create a new shared resource from a file.
@@ -44,8 +47,19 @@ public class SharedResource extends AbstractResource {
      * @see ResourceFactory#getRoot()
      */
     public static Resource file(String path) {
+        return file(path, null);
+    }
+
+    /**
+     * Create a new shared resource from a file.
+     *
+     * @param path the path (relative to the root) of the resource
+     * @return a non-null instance
+     * @see ResourceFactory#getRoot()
+     */
+    public static Resource file(String path, String fragment) {
         requireNonNull(path);
-        return new SharedResource(Type.FILE, path);
+        return new SharedResource(Type.FILE, path, fragment);
     }
 
     /**
@@ -56,13 +70,25 @@ public class SharedResource extends AbstractResource {
      * @see ResourceFactory#getRoot()
      */
     public static Resource directory(String path) {
-        requireNonNull(path);
-        return new SharedResource(Type.DIRECTORY, path);
+        return directory(path, null);
     }
 
-    SharedResource(Type type, String path) {
+    /**
+     * Create a new shared resource from a directory.
+     *
+     * @param path the path (relative to the root) of the resource
+     * @return a non-null instance
+     * @see ResourceFactory#getRoot()
+     */
+    public static Resource directory(String path, String fragment) {
+        requireNonNull(path);
+        return new SharedResource(Type.DIRECTORY, path, fragment);
+    }
+
+    SharedResource(Type type, String path, String fragment) {
         super(type, hash(addStartSlash(path)));
         this.path = addStartSlash(path);
+        this.fragment = fragment;
     }
 
     @Override
@@ -77,12 +103,12 @@ public class SharedResource extends AbstractResource {
 
     @Override
     public Resource resolve(String path, Type type) {
-        return new SharedResource(type, getSubPath(path));
+        return new SharedResource(type, getSubPath(path), fragment);
     }
 
     @Override
     public Resource get(String path, Type type) {
-        return new SharedResource(type, path);
+        return new SharedResource(type, path, fragment);
     }
 
     @Override
@@ -132,12 +158,13 @@ public class SharedResource extends AbstractResource {
 
     @Override
     public URI toURI() {
-        return URI.create(SHARED + ":" + addStartSlash(path));
+        String fragmentUri = StringUtils.isNotEmpty(fragment) ? "#" + fragment : EMPTY_STRING;
+        return URI.create(SHARED + ":" + addStartSlash(path) + fragmentUri);
     }
 
     @Override
     public Resource toFile() {
-        return getDelegatingResourceWithoutSymlink().toFile().resolve(path, getType());
+        return getDelegatingResourceWithSymlink().toFile();
     }
 
     @Override
@@ -186,7 +213,8 @@ public class SharedResource extends AbstractResource {
 
         @Override
         public Resource resolve(URI uri, Resource.Type type) {
-            return type != null ? new SharedResource(type, uri.getPath()) : SharedResource.create(uri.getPath());
+            Resource resource = type != null ? new SharedResource(type, uri.getPath(), uri.getFragment()) : SharedResource.create(uri.getPath());
+            return resource.withFragment(uri.getFragment());
         }
     }
 }

@@ -281,7 +281,8 @@ public class FileResource extends AbstractResource {
 
         @Override
         public Resource resolve(URI uri, Resource.Type type) {
-            return type != null ? FileResource.create(uri, type) : FileResource.create(uri);
+            Resource resource = type != null ? FileResource.create(uri, type) : FileResource.create(uri);
+            return resource.withFragment(uri.getFragment());
         }
     }
 }
