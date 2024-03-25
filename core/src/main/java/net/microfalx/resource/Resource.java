@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * An interface for a resource descriptor that abstracts from the actual
@@ -324,6 +325,21 @@ public interface Resource extends Serializable {
     String detectMimeType();
 
     /**
+     * Returns the attributes associated with this resources.
+     *
+     * @return a non-null instance
+     */
+    Map<String, Object> getAttributes();
+
+    /**
+     * Returns the attribute names associated with this resources.
+     *
+     * @return a non-null instance
+     */
+    Iterable<String> getAttributeNames();
+
+
+    /**
      * Returns an attribute associated with the resource.
      *
      * @param name the name
@@ -502,6 +518,14 @@ public interface Resource extends Serializable {
      * @return a new instance
      */
     Resource withAttribute(String name, Object value);
+
+    /**
+     * Creates a copy of the resource, and adds a new attribute.
+     *
+     * @param attributes a map with attributes
+     * @return a new instance
+     */
+    <A> Resource withAttributes(Map<String, A> attributes);
 
     /**
      * Creates a copy of the resource, and changes the mime type.

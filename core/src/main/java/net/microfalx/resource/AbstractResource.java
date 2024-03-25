@@ -12,6 +12,8 @@ import java.util.*;
 import java.util.concurrent.Callable;
 
 import static java.net.URLConnection.guessContentTypeFromName;
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableMap;
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.ExceptionUtils.throwException;
 import static net.microfalx.lang.IOUtils.*;
@@ -93,6 +95,16 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public Resource getParent() {
         return null;
+    }
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes == null ? Collections.emptyMap() : unmodifiableMap(attributes);
+    }
+
+    @Override
+    public Iterable<String> getAttributeNames() {
+        return attributes == null ? Collections.emptyList() : unmodifiableCollection(attributes.keySet());
     }
 
     @SuppressWarnings("unchecked")
@@ -444,6 +456,19 @@ public abstract class AbstractResource implements Resource, Cloneable {
         if (copy.attributes == null) copy.attributes = new HashMap<>();
         copy.attributes.put(name, value);
         return copy;
+    }
+
+    @Override
+    public <A> Resource withAttributes(Map<String, A> attributes) {
+        ArgumentUtils.requireNonNull(attributes);
+        if (attributes.isEmpty()) {
+            return this;
+        } else {
+            AbstractResource copy = copy();
+            if (copy.attributes == null) copy.attributes = new HashMap<>();
+            copy.attributes.putAll(attributes);
+            return copy;
+        }
     }
 
     @Override
