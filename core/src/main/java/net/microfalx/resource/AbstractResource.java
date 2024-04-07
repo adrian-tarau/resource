@@ -39,6 +39,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     private String mimeType;
     private boolean absolutePath = true;
     private String fragment;
+    private volatile String hash;
 
     private Credential credential = Credential.NA;
 
@@ -75,6 +76,10 @@ public abstract class AbstractResource implements Resource, Cloneable {
             return name;
         }
         return getFileName();
+    }
+
+    protected final void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -550,6 +555,17 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
+    public String toHash() {
+        if (hash == null) {
+            Hashing hashing = Hashing.create();
+            hashing.update(getClass().getName());
+            updateHash(hashing);
+            hash = hashing.asString();
+        }
+        return hash;
+    }
+
+    @Override
     public boolean isLocal() {
         URI uri = toURI();
         String scheme = uri.getScheme();
@@ -572,6 +588,16 @@ public abstract class AbstractResource implements Resource, Cloneable {
      */
     protected Metrics getMetrics() {
         return METRICS;
+    }
+
+    /**
+     * Updates a hash based on resource URI.
+     * <p>
+     * Subclasses can change the way how the hash is calculated.
+     */
+    protected void updateHash(Hashing hashing) {
+        hashing.update(getId());
+        hashing.update(toURI().toASCIIString());
     }
 
     /**
@@ -610,9 +636,12 @@ public abstract class AbstractResource implements Resource, Cloneable {
      * @param <T> the type
      * @return a new instance
      */
+    @SuppressWarnings("unchecked")
     protected final <T extends AbstractResource> T copy() {
         try {
-            return (T) clone();
+            AbstractResource abstractResource = (AbstractResource) clone();
+            abstractResource.hash = null;
+            return (T) abstractResource;
         } catch (CloneNotSupportedException e) {
             return throwException(e);
         }

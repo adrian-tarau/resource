@@ -468,6 +468,13 @@ public interface Resource extends Serializable {
     Resource toFile();
 
     /**
+     * Returns a hash code unique to the resource type and content/address, which can be used to reference resources in caches.
+     *
+     * @return a non-null instance
+     */
+    String toHash();
+
+    /**
      * Returns whether the resource is supported by a local file system.
      * <p>
      * At the OS level, the file system could be a network file system but from the perspective of the resource it

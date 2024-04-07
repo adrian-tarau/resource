@@ -35,6 +35,8 @@ public class ResourceUtils {
 
     public static final int MAX_RETRY_COUNT = 3;
     public static final int MAX_SLEEP_BETWEEN_RETRIES = 10;
+    public static final int MAX_NAME_LENGTH = 60;
+    public static final int MAX_BODY_LENGTH = 10 * MAX_NAME_LENGTH;
 
     public static final byte[] EMPTY_BYTES = new byte[0];
     public static final String SLASH = "/";
@@ -142,6 +144,21 @@ public class ResourceUtils {
     public static boolean isDirectory(String uri) {
         requireNonNull(uri);
         return uri.endsWith(SLASH);
+    }
+
+    /**
+     * Creates a resource name out of a body of text.
+     * <p>
+     * Only first {@link #MAX_BODY_LENGTH} characters are considered and the name is limited truncated in the middle
+     * at {@link #MAX_NAME_LENGTH} length.
+     *
+     * @param text the original text.
+     * @return the name, N/A if the original text was emtpy
+     */
+    public static String createName(String text) {
+        if (StringUtils.isEmpty(text)) return StringUtils.NA_STRING;
+        if (text.length() > MAX_BODY_LENGTH) text = text.substring(0, MAX_BODY_LENGTH);
+        return org.apache.commons.lang3.StringUtils.abbreviateMiddle(net.microfalx.lang.StringUtils.removeLineBreaks(text), "...", MAX_NAME_LENGTH);
     }
 
     /**

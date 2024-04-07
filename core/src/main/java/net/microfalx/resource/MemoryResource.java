@@ -1,5 +1,6 @@
 package net.microfalx.resource;
 
+import net.microfalx.lang.Hashing;
 import net.microfalx.metrics.Metrics;
 
 import java.io.*;
@@ -48,7 +49,9 @@ public final class MemoryResource extends AbstractResource {
      */
     public static Resource create(String text) {
         requireNonNull(text);
-        return create(text.getBytes()).withMimeType(MimeType.TEXT_PLAIN);
+        MemoryResource resource = (MemoryResource) create(text.getBytes()).withMimeType(MimeType.TEXT_PLAIN);
+        resource.setName(ResourceUtils.createName(text));
+        return resource;
     }
 
     /**
@@ -182,6 +185,11 @@ public final class MemoryResource extends AbstractResource {
     @Override
     protected Metrics getMetrics() {
         return METRICS;
+    }
+
+    @Override
+    protected void updateHash(Hashing hashing) {
+        hashing.update(data);
     }
 
     class MemoryOutputStream extends ByteArrayOutputStream {
