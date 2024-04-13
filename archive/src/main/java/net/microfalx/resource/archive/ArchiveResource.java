@@ -313,7 +313,6 @@ public final class ArchiveResource extends AbstractResource {
 
         public ArchiveEntryResource(String id, ArchiveInputStream stream, ArchiveEntry entry) {
             super(entry.isDirectory() ? Type.DIRECTORY : Type.FILE, id);
-
             this.stream = stream;
             this.entry = entry;
         }
@@ -345,7 +344,7 @@ public final class ArchiveResource extends AbstractResource {
 
         @Override
         public InputStream doGetInputStream(boolean raw) throws IOException {
-            if (read.compareAndSet(false, true)) throw new ResourceException("The stream for entry '"
+            if (!read.compareAndSet(false, true)) throw new ResourceException("The stream for entry '"
                     + entry.getName() + "' was already processed");
             return getUnclosableInputStream(stream);
         }

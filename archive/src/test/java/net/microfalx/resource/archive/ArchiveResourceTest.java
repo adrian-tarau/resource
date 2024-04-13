@@ -1,5 +1,6 @@
 package net.microfalx.resource.archive;
 
+import net.microfalx.lang.IOUtils;
 import net.microfalx.resource.ClassPathResource;
 import net.microfalx.resource.Resource;
 import org.junit.jupiter.api.Test;
@@ -66,9 +67,11 @@ class ArchiveResourceTest {
     @Test
     void walkArchive() throws IOException {
         AtomicInteger fileCount = new AtomicInteger();
+        AtomicInteger fileSize = new AtomicInteger();
         AtomicInteger directoryCount = new AtomicInteger();
         fromFile("sample.zip").walk((parent, child) -> {
             assertTrue(child.isFile() ? child.length() > 0 : child.length() == 0);
+            if (child.isFile()) fileSize.addAndGet(IOUtils.getInputStreamAsBytes(child.getInputStream()).length);
             assertTrue(child.lastModified() > 0);
             if (child.isFile()) {
                 fileCount.incrementAndGet();
@@ -78,6 +81,7 @@ class ArchiveResourceTest {
             return true;
         });
         assertEquals(11, fileCount.get());
+        assertEquals(44, fileSize.get());
         assertEquals(4, directoryCount.get());
     }
 
