@@ -84,6 +84,99 @@ public class RocksDbManager {
     }
 
     /**
+     * Returns the number of tuples (estimation) in the database.
+     *
+     * @param db the database
+     * @return the size in bytes
+     */
+    public static long getCount(RocksDB db) {
+        long count;
+        try {
+            count = db.getLongProperty("rocksdb.estimate-num-keys");
+        } catch (RocksDBException e) {
+            count = -1;
+        }
+        return count;
+    }
+
+    /**
+     * Returns the size of the SST files in the database.
+     *
+     * @param db the database
+     * @return the size in bytes
+     */
+    public static long getSSTSize(RocksDB db) {
+        requireNonNull(db);
+        long count;
+        try {
+            count = db.getLongProperty("rocksdb.total-sst-files-size");
+        } catch (RocksDBException e) {
+            count = -1;
+        }
+        return count;
+    }
+
+    /**
+     * Returns the size of memory tables in the database.
+     *
+     * @param db the database
+     * @return the size in bytes
+     */
+    public static long getMemTablesSize(RocksDB db) {
+        requireNonNull(db);
+        long count;
+        try {
+            count = db.getLongProperty("rocksdb.size-all-mem-tables");
+        } catch (RocksDBException e) {
+            count = -1;
+        }
+        return count;
+    }
+
+    /**
+     * Returns a multi-line string containing a description of the internal stats
+     *
+     * @param db the database
+     * @return the stats
+     */
+    public static String getStats(RocksDB db) {
+        requireNonNull(db);
+        String stats;
+        try {
+            stats = db.getProperty("rocksdb.stats");
+        } catch (RocksDBException e) {
+            stats = "#ERROR";
+        }
+        return stats;
+
+    }
+
+    /**
+     * Creates a RocksDB database.
+     *
+     * @param file the directory which will contain the database
+     * @return a non-null instance
+     */
+    public RocksDB create(File file) {
+        requireNonNull(file);
+        initialize();
+        validateDirectoryExists(file);
+        final Options options = new Options();
+        options.setCompressionType(SNAPPY_COMPRESSION);
+        options.setBlobCompressionType(SNAPPY_COMPRESSION);
+        options.setBottommostCompressionType(SNAPPY_COMPRESSION);
+        options.setCreateIfMissing(true);
+        try {
+            RocksDB db = RocksDB.open(options, file.getAbsolutePath());
+            LOGGER.info("Open RocksDB database at '" + file.getAbsolutePath() + ", compression=" + db.getOptions().compressionType()
+                    + ", blob compression=" + db.getOptions().blobCompressionType());
+            return db;
+        } catch (RocksDBException e) {
+            throw new ResourceException("Failed to initialize RocksDB database at '" + file + "'", e);
+        }
+    }
+
+    /**
      * Returns the database associated with the file.
      *
      * @param file the file where to store the database
@@ -93,28 +186,14 @@ public class RocksDbManager {
         requireNonNull(file);
         synchronized (databases) {
             cleanup(false);
-            initialize();
             RocksDB db = null;
             WeakReference<RocksDB> reference = databases.get(file);
             if (reference != null) db = reference.get();
             if (db != null) return db;
-            validateDirectoryExists(file);
-            final Options options = new Options();
-            options.setCompressionType(SNAPPY_COMPRESSION);
-            options.setBlobCompressionType(SNAPPY_COMPRESSION);
-            options.setBottommostCompressionType(SNAPPY_COMPRESSION);
-            options.setCreateIfMissing(true);
-            try {
-                db = RocksDB.open(options, file.getAbsolutePath());
-                reference = new WeakReference<>(db, cleanupQueue);
-                databases.put(file, reference);
-                db.getOptions();
-                LOGGER.info("Open RocksDB database at '" + file.getAbsolutePath() + ", compression=" + db.getOptions().compressionType()
-                        + ", blob compression=" + db.getOptions().blobCompressionType());
-                return db;
-            } catch (RocksDBException e) {
-                throw new ResourceException("Failed to initialize RocksDB database at '" + file + "'", e);
-            }
+            db = create(file);
+            reference = new WeakReference<>(db, cleanupQueue);
+            databases.put(file, reference);
+            return db;
         }
     }
 
