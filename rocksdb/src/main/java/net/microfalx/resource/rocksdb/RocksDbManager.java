@@ -84,15 +84,15 @@ public class RocksDbManager {
     }
 
     /**
-     * Returns the number of tuples (estimation) in the database.
+     * Returns the number of tuples (estimation) in the database in memory (MemTable) and on disk (SST).
      *
      * @param db the database
      * @return the size in bytes
      */
-    public static long getCount(RocksDB db) {
+    public static long getDiskCount(RocksDB db) {
         long count;
         try {
-            count = db.getLongProperty("rocksdb.estimate-num-keys");
+            count = db.getLongProperty("rocksdb.estimate-num-keys") - db.getLongProperty("rocksdb.num-entries-imm-mem-tables");
         } catch (RocksDBException e) {
             count = -1;
         }
@@ -100,12 +100,12 @@ public class RocksDbManager {
     }
 
     /**
-     * Returns the size of the SST files in the database.
+     * Returns the size of the database on disk (SST).
      *
      * @param db the database
      * @return the size in bytes
      */
-    public static long getSSTSize(RocksDB db) {
+    public static long getDiskSize(RocksDB db) {
         requireNonNull(db);
         long count;
         try {
@@ -117,12 +117,30 @@ public class RocksDbManager {
     }
 
     /**
-     * Returns the size of memory tables in the database.
+     * Returns the number of tuples (estimation) of memory tables in the database.
      *
      * @param db the database
      * @return the size in bytes
      */
-    public static long getMemTablesSize(RocksDB db) {
+    public static long getMemoryCount(RocksDB db) {
+        requireNonNull(db);
+        long count;
+        try {
+            count = db.getLongProperty("rocksdb.num-entries-active-mem-table") + db.getLongProperty("rocksdb.num-entries-imm-mem-tables");
+        } catch (RocksDBException e) {
+            count = -1;
+        }
+        return count;
+    }
+
+
+    /**
+     * Returns the size (estimation) of memory tables in the database.
+     *
+     * @param db the database
+     * @return the size in bytes
+     */
+    public static long getMemorySize(RocksDB db) {
         requireNonNull(db);
         long count;
         try {
