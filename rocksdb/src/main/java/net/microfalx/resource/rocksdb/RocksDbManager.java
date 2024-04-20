@@ -40,6 +40,10 @@ public class RocksDbManager {
     private volatile long lastCleanup = System.currentTimeMillis();
     private volatile long maximumSize = 50_000_000;
 
+    RocksDbManager() {
+        Runtime.getRuntime().addShutdownHook(new Shutdown());
+    }
+
     /**
      * Returns an instance to the manager.
      *
@@ -229,10 +233,25 @@ public class RocksDbManager {
             try {
                 if (db != null) db.close();
             } catch (Exception e) {
-                LOGGER.warn("Failed to close RocksDB '" + db + "'", e);
+                LOGGER.warn("Failed to close RocksDB during cleanup '" + db + "'", e);
             }
         }
         lastCleanup = System.currentTimeMillis();
+    }
+
+    private void shutdown() {
+        LOGGER.info("Shutdown RocksDB databases");
+        for (WeakReference<RocksDB> reference : databases.values()) {
+            RocksDB rocksDB = reference.get();
+            if (rocksDB != null) {
+                LOGGER.info(" - " + rocksDB.getName());
+                try {
+                    rocksDB.close();
+                } catch (Exception e) {
+                    LOGGER.warn("Failed to close RocksDB '" + rocksDB + "'", e);
+                }
+            }
+        }
     }
 
     private void initialize() {
@@ -241,6 +260,18 @@ public class RocksDbManager {
             setMaximumSize(Runtime.getRuntime().maxMemory() / 5);
         }
         initialized = true;
+    }
+
+    class Shutdown extends Thread {
+
+        public Shutdown() {
+            setName("RocksDB Manager");
+        }
+
+        @Override
+        public void run() {
+            shutdown();
+        }
     }
 
 
