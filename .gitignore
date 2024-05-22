@@ -32,14 +32,4 @@ hs_err_pid*
 /ftp/target/
 /ftp/ftp.iml
 /archive/target/
-/rocksdb/target/classes/META-INF/services/net.microfalx.resource.ResourceResolver
-/rocksdb/target/maven-shared-archive-resources/META-INF/DEPENDENCIES
-/rocksdb/target/maven-shared-archive-resources/META-INF/LICENSE
-/rocksdb/target/maven-shared-archive-resources/META-INF/NOTICE
-/rocksdb/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
-/rocksdb/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
-/rocksdb/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst
-/rocksdb/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst
-/rocksdb/target/surefire-reports/net.microfalx.resource.rocksdb.RocksDbManagerTest.txt
-/rocksdb/target/surefire-reports/TEST-net.microfalx.resource.rocksdb.RocksDbManagerTest.xml
-/rocksdb/target/.plxarc
+/rocksdb/target/
