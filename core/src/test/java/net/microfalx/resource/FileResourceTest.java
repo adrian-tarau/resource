@@ -109,35 +109,35 @@ class FileResourceTest extends AbstractResourceTestCase {
     void resolve() {
         Resource resource = FileResource.directory(new File("dir1"));
         resource = resource.resolve("file11.txt");
-        Assertions.assertThat(resource.getPath()).endsWith("resource/core/dir1/file11.txt");
+        Assertions.assertThat(resource.getPath()).endsWith("core/dir1/file11.txt");
     }
 
     @Test
     void resolveWithType() {
         Resource resource = FileResource.directory(new File("dir1"));
         resource = resource.resolve("file11.txt", Resource.Type.FILE);
-        Assertions.assertThat(resource.getPath()).endsWith("resource/core/dir1/file11.txt");
+        Assertions.assertThat(resource.getPath()).endsWith("core/dir1/file11.txt");
     }
 
     @Test
     void get() {
         Resource resource = FileResource.directory(new File("dir1"));
         resource = resource.get("file11.txt");
-        Assertions.assertThat(resource.getPath()).endsWith("resource/core/file11.txt");
+        Assertions.assertThat(resource.getPath()).endsWith("core/file11.txt");
     }
 
     @Test
     void getWithType() {
         Resource resource = FileResource.directory(new File("dir1"));
         resource = resource.get("file11.txt", Resource.Type.FILE);
-        Assertions.assertThat(resource.getPath()).endsWith("resource/core/file11.txt");
+        Assertions.assertThat(resource.getPath()).endsWith("core/file11.txt");
     }
 
     @Test
     void create() throws IOException {
         Resource resource = FileResource.directory(new File("file3.txt"));
-        assertEquals("file3.txt",resource.create().getFileName());
-        Assertions.assertThat(resource.create().getPath()).endsWith("resource/core/file3.txt/");
+        assertEquals("file3.txt", resource.create().getFileName());
+        Assertions.assertThat(resource.create().getPath()).endsWith("core/file3.txt/");
     }
 
     @Test
@@ -147,23 +147,23 @@ class FileResourceTest extends AbstractResourceTestCase {
     }
 
     @Test
-    void toFile(){
+    void toFile() {
         Resource resource = FileResource.directory(new File("dir1"));
         assertNotNull(resource.toFile());
     }
 
     @Test
-    void supports(){
-        FileResource.FileResourceResolver fileResourceResolver= new FileResource.FileResourceResolver();
+    void supports() {
+        FileResource.FileResourceResolver fileResourceResolver = new FileResource.FileResourceResolver();
         assertFalse(fileResourceResolver.supports(URI.create("https://www.google.com/")));
     }
 
     @Test
-    void resolveWithURIAndType(){
-        FileResource.FileResourceResolver fileResourceResolver= new FileResource.FileResourceResolver();
+    void resolveWithURIAndType() {
+        FileResource.FileResourceResolver fileResourceResolver = new FileResource.FileResourceResolver();
         Resource resolveResource = fileResourceResolver.resolve(URI.
-                        create("http://example.com/software/htp/cics/index.html"), Resource.Type.FILE);
-        assertEquals("index.html",resolveResource.getFileName());
+                create("http://example.com/software/htp/cics/index.html"), Resource.Type.FILE);
+        assertEquals("index.html", resolveResource.getFileName());
         assertTrue(resolveResource.isFile());
         Assertions.assertThat(resolveResource.getPath()).endsWith("/software/htp/cics/index.html");
     }
