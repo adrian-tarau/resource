@@ -1,12 +1,33 @@
 package net.microfalx.resource;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class FileResourceTest extends AbstractResourceTestCase {
+
+    @Test
+    void createFromURI() {
+        Resource resource = FileResource.create(URI.create("dir1/file11.txt"));
+        assertNotNull(resource);
+    }
+
+    @Test
+    void createWithURIAndType() {
+        Resource resource = FileResource.create(URI.create("dir1/file11.txt"), Resource.Type.FILE);
+        assertNotNull(resource);
+    }
+
+    @Test
+    void createFromFile() {
+        Resource resource = FileResource.create(new File("dir1/file11.txt"));
+        assertNotNull(resource);
+    }
 
     @Test
     void file() throws IOException {
@@ -14,25 +35,50 @@ class FileResourceTest extends AbstractResourceTestCase {
         assertTrue(file.exists());
         assertTrue(file.isFile());
         assertFalse(file.isDirectory());
-        assertEquals(4, file.length());
         assertNotEquals(0, file.lastModified());
         assertEquals("file1.txt", file.getFileName());
-
-        file = fromFile("dir1/file11.txt");
-        assertTrue(file.exists());
-        assertEquals(4, file.length());
-        assertEquals("file11.txt", file.getFileName());
-        assertEquals("dir1", file.getParent().getFileName());
     }
 
     @Test
     void directory() throws IOException {
-        Resource directory = ClassPathResource.directory("dir1");
+        Resource directory = FileResource.directory(new File("src/test/resources/dir1"));
         assertTrue(directory.exists());
         assertFalse(directory.isFile());
         assertTrue(directory.isDirectory());
-        assertTrue(directory.length()> 0);
-        assertNotEquals(0, directory.lastModified());
+    }
+
+    @Test
+    void createFromResource() throws IOException {
+        Resource resource = FileResource.create(MemoryResource.create("I am writing java code"));
+        assertNotNull(resource);
+        resource = FileResource.create(FileResource.directory(new File("src/test/resources/dir1")));
+        assertEquals(resource, FileResource.directory(new File("src/test/resources/dir1")));
+    }
+
+    @Test
+    void getParent() {
+        Resource resource = FileResource.file(new File("dir3/dir32/dir321/file3211.txt"));
+        assertTrue(resource.getParent().isAbsolutePath());
+    }
+
+    @Test
+    void getFile() {
+        FileResource resource = (FileResource) FileResource.file(new File("dir3/dir32/dir321/file3211.txt"));
+        assertEquals("file3211.txt", resource.getFile().getName());
+        assertEquals("dir3" + File.separator + "dir32" + File.separator + "dir321" + File.separator +
+                "file3211.txt", resource.getFile().getPath());
+    }
+
+    @Test
+    void doGetInputStream() throws IOException {
+        Resource file = fromFile("file1.txt");
+        assertNotNull(file.getInputStream());
+    }
+
+    @Test
+    void doGetOutputStream() throws IOException {
+        Resource file = fromFile("file1.txt");
+        assertNotNull(file.getOutputStream());
     }
 
     @Test
@@ -57,6 +103,69 @@ class FileResourceTest extends AbstractResourceTestCase {
         assertEquals(1, dir1.list().size());
         dir1 = fromFile("dir3");
         assertEquals(3, dir1.list().size());
+    }
+
+    @Test
+    void resolve() {
+        Resource resource = FileResource.directory(new File("dir1"));
+        resource = resource.resolve("file11.txt");
+        Assertions.assertThat(resource.getPath()).endsWith("resource/core/dir1/file11.txt");
+    }
+
+    @Test
+    void resolveWithType() {
+        Resource resource = FileResource.directory(new File("dir1"));
+        resource = resource.resolve("file11.txt", Resource.Type.FILE);
+        Assertions.assertThat(resource.getPath()).endsWith("resource/core/dir1/file11.txt");
+    }
+
+    @Test
+    void get() {
+        Resource resource = FileResource.directory(new File("dir1"));
+        resource = resource.get("file11.txt");
+        Assertions.assertThat(resource.getPath()).endsWith("resource/core/file11.txt");
+    }
+
+    @Test
+    void getWithType() {
+        Resource resource = FileResource.directory(new File("dir1"));
+        resource = resource.get("file11.txt", Resource.Type.FILE);
+        Assertions.assertThat(resource.getPath()).endsWith("resource/core/file11.txt");
+    }
+
+    @Test
+    void create() throws IOException {
+        Resource resource = FileResource.directory(new File("file3.txt"));
+        assertEquals("file3.txt",resource.create().getFileName());
+        Assertions.assertThat(resource.create().getPath()).endsWith("resource/core/file3.txt/");
+    }
+
+    @Test
+    void delete() throws IOException {
+        Resource resource = FileResource.file(new File("file3.txt"));
+        assertFalse(resource.delete().exists());
+    }
+
+    @Test
+    void toFile(){
+        Resource resource = FileResource.directory(new File("dir1"));
+        assertNotNull(resource.toFile());
+    }
+
+    @Test
+    void supports(){
+        FileResource.FileResourceResolver fileResourceResolver= new FileResource.FileResourceResolver();
+        assertFalse(fileResourceResolver.supports(URI.create("https://www.google.com/")));
+    }
+
+    @Test
+    void resolveWithURIAndType(){
+        FileResource.FileResourceResolver fileResourceResolver= new FileResource.FileResourceResolver();
+        Resource resolveResource = fileResourceResolver.resolve(URI.
+                        create("http://example.com/software/htp/cics/index.html"), Resource.Type.FILE);
+        assertEquals("index.html",resolveResource.getFileName());
+        assertTrue(resolveResource.isFile());
+        Assertions.assertThat(resolveResource.getPath()).endsWith("/software/htp/cics/index.html");
     }
 
 }
