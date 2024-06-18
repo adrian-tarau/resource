@@ -3,77 +3,112 @@ package net.microfalx.resource;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.net.MalformedURLException;
+import java.net.URI;
 
-import static net.microfalx.lang.IOUtils.getInputStreamAsBytes;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UrlResourceTest {
 
     @Test
-    void create() throws IOException {
-        Resource resource = UrlResource.create(ClassPathResource.file("file11.txt").toURI().toURL());
-        assertNotNull(resource);
-        resource = UrlResource.create(ClassPathResource.file("file11.txt").toURI());
-        assertNotNull(resource);
-        resource = UrlResource.create(ClassPathResource.directory("dir1").toURI().toURL(), Resource.Type.DIRECTORY);
+    void createFromURI() throws IOException {
+        Resource resource = UrlResource.create(ClassPathResource.file("file11.txt").toURI());
         assertNotNull(resource);
     }
 
     @Test
-    void getParent() {
-        Resource resource = ClassPathResource.file("dir1/file11.txt");
-        assertTrue(resource.getParent().getPath().endsWith("dir1"));
+    void createFromURL() throws MalformedURLException {
+        Resource resource = UrlResource.create(ClassPathResource.file("file11.txt").toURI().toURL());
+        assertNotNull(resource);
+    }
+
+    @Test
+    void createFromURLAndType() throws MalformedURLException {
+        Resource resource = UrlResource.create(ClassPathResource.directory("dir1").toURI().toURL(),
+                Resource.Type.DIRECTORY);
+        assertNotNull(resource);
+    }
+
+    @Test
+    void getParent() throws IOException {
+        UrlResource resource = (UrlResource) UrlResource.create(URI.
+                create("http://example.com/software/htp/cics/index.html"));
+        assertEquals("/software/htp/cics", resource.getParent().getPath());
     }
 
     @Test
     void getInputStream() throws IOException {
-        Resource resource = ClassPathResource.file("dir1/file11.txt");
-        assertEquals(4, getInputStreamAsBytes(resource.getInputStream()).length);
+        UrlResource resource = (UrlResource) UrlResource.create(URI.
+                create("https://www.google.com/"));
+        assertNotNull(resource.getInputStream());
     }
 
     @Test
-    void getFileName() {
-        Resource resource = ClassPathResource.file("dir1/file11.txt");
-        assertEquals("file11.txt", resource.getName());
-        assertEquals("file11.txt", resource.getFileName());
-        resource = ClassPathResource.file("dir1/");
-        assertEquals("dir1", resource.getFileName());
+    void doExists() throws IOException {
+        UrlResource resource = (UrlResource) UrlResource.create(URI.
+                create("http://example.com/software/htp/cics/index.html"));
+        assertFalse(resource.doExists());
     }
 
+
     @Test
-    void exists() throws IOException {
-        Resource resource = ClassPathResource.file("dir1/file11.txt");
-        assertTrue(resource.exists());
-        resource = ClassPathResource.file("dir1/file111.txt");
-        assertFalse(resource.exists());
+    void getFileName() throws IOException {
+        UrlResource resource = (UrlResource) UrlResource.create(URI.
+                create("http://example.com/software/htp/cics/index.html"));
+        assertEquals("index.html", resource.getFileName());
+        assertEquals("index.html", resource.getFileName());
     }
+
 
     @Test
     void list() throws IOException {
-        Resource resource = ClassPathResource.file("dir1/file11.txt");
-        assertEquals(0, resource.list().size());
-        resource = ClassPathResource.directory("dir3");
+        Resource resource = ClassPathResource.directory("dir3");
         assertEquals(3, resource.list().size());
+        UrlResource urlResource = (UrlResource) UrlResource.create(URI.
+                create("http://example.com/software/htp/cics/index.html"));
+        assertThrows(IllegalStateException.class, urlResource::doList);
     }
 
     @Test
-    void resolve() {
-        Resource resource = ClassPathResource.file("dir1/");
-        resource = resource.resolve("file11.txt");
-        assertEquals("file11.txt", resource.getFileName());
+    void resolve() throws IOException {
+        UrlResource resource = (UrlResource) UrlResource.create(URI.
+                create("http://example.com/software/htp/cics/"));
+        assertEquals("index.html", resource.resolve("index.html").getFileName());
+        assertEquals("/software/htp/cics/index.html", resource.resolve("index.html", Resource.Type.FILE).getPath());
+    }
+
+    @Test
+    void resolveWithType() throws IOException {
+        UrlResource resource = (UrlResource) UrlResource.create(URI.
+                create("http://example.com/software/htp/cics/"));
+        assertEquals("index.html", resource.resolve("index.html", Resource.Type.FILE).getFileName());
+        assertEquals("/software/htp/cics/index.html", resource.resolve("index.html", Resource.Type.FILE).getPath());
+    }
+
+    @Test
+    void get() throws IOException {
+        UrlResource resource = (UrlResource) UrlResource.create(URI.
+                create("http://example.com/software/htp/cics/"));
+        assertEquals("index.html", resource.get("index.html", Resource.Type.FILE).getFileName());
+        assertEquals("/index.html", resource.get("index.html", Resource.Type.FILE).getPath());
+
     }
 
     @Test
     void lastModified() throws IOException {
-        Resource resource = ClassPathResource.file("dir1/file11.txt");
-        assertTrue(resource.lastModified() > 1642899716720L);
+        UrlResource resource = (UrlResource) UrlResource.create(URI.
+                create("http://example.com/software/htp/cics/index.html"));
+        assertEquals(0L, resource.lastModified());
     }
 
     @Test
-    void length() throws IOException {
-        Resource resource = ClassPathResource.file("dir1/file11.txt");
-        assertEquals(4, resource.length());
+    void doLength() throws IOException {
+        UrlResource resource = (UrlResource) UrlResource.create(URI.
+                create("https://www.google.com/"));
+        assertEquals(-1, resource.doLength());
+        resource = (UrlResource) UrlResource.create(URI.
+                create("https://localhost/test"));
+        assertEquals(-1, resource.doLength());
     }
 
     @Test
@@ -82,37 +117,13 @@ class UrlResourceTest {
         assertTrue(resource.toURI().toASCIIString().endsWith("file11.txt"));
     }
 
-    @Test
-    void walkDirectory() throws IOException {
-        Resource directory = ClassPathResource.directory("dir3");
-        AtomicInteger directoryCount = new AtomicInteger();
-        AtomicInteger fileCount = new AtomicInteger();
-        directory.walk((root, child) -> {
-            if (child.isFile()) {
-                fileCount.incrementAndGet();
-            } else {
-                directoryCount.incrementAndGet();
-            }
-            return true;
-        });
-        assertEquals(3, directoryCount.get());
-        assertEquals(4, fileCount.get());
-    }
 
     @Test
-    void walkDirectoryInsideJars() throws IOException {
-        Resource directory = ClassPathResource.directory("META-INF/maven");
-        AtomicInteger directoryCount = new AtomicInteger();
-        AtomicInteger fileCount = new AtomicInteger();
-        directory.walk((root, child) -> {
-            if (child.isFile()) {
-                fileCount.incrementAndGet();
-            } else {
-                directoryCount.incrementAndGet();
-            }
-            return true;
-        });
-        assertEquals(40, directoryCount.get());
-        assertEquals(40, fileCount.get());
+    void createFromUriString() throws IOException {
+        UrlResource resource = (UrlResource) UrlResource.create(URI.
+                create("http://example.com/software/htp/cics/index.html"));
+        Resource newUriResource = resource.createFromUriString("http://example.com/software/htp/cics/home.html",
+                Resource.Type.FILE);
+        assertEquals("/software/htp/cics/home.html", newUriResource.getPath());
     }
 }

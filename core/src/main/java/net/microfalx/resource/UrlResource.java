@@ -175,7 +175,7 @@ public class UrlResource extends AbstractResource {
         requireNonNull(path);
         requireNonNull(type);
         try {
-            URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), path, null, null);
+            URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), addStartSlash(path), null, null);
             return createFromUriString(uri.toASCIIString(), type);
         } catch (URISyntaxException e) {
             throw new ResourceException("Invalid resource URL for path '" + path + "', original URL '" + url + "'", e);
