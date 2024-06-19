@@ -1,9 +1,9 @@
 package net.microfalx.resource.sftp;
 
-import net.microfalx.resource.Credential;
-import net.microfalx.resource.Resource;
-import net.microfalx.resource.StatefulResource;
-import net.microfalx.resource.UserPasswordCredential;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpException;
+import net.microfalx.resource.*;
 import org.apache.sshd.common.config.keys.KeyUtils;
 import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory;
 import org.apache.sshd.common.keyprovider.KeyPairProvider;
@@ -14,6 +14,7 @@ import org.apache.sshd.server.auth.password.PasswordChangeRequiredException;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.sftp.server.SftpSubsystemFactory;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.Collections;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static net.microfalx.lang.IOUtils.appendStream;
 import static net.microfalx.lang.IOUtils.getInputStreamAsBytes;
@@ -40,7 +42,7 @@ class SftpResourceTest {
         sshServer = setupServer();
     }
 
-    @BeforeAll
+    @AfterAll
     static void stopServer() {
         try {
             if (sshServer != null) sshServer.close();
@@ -50,18 +52,63 @@ class SftpResourceTest {
     }
 
     @Test
-    void create() {
-        Resource resource = SftpResource.create(createUri("file1.txt"), getCredential());
+    void createFile() throws IOException {
+        Resource resource = SftpResource.file(createUri("file1.txt"), getCredential());
         assertNotNull(resource);
-        assertEquals("sftp://tarau.net/file1.txt", resource.toURI().toASCIIString());
+        assertEquals("sftp", resource.toURI().getScheme());
+        assertEquals("localhost", resource.toURI().getHost());
+        assertEquals("/file1.txt", resource.toURI().getPath());
+        assertThrows(FileNotFoundException.class, resource::loadAsString);
+        assertEquals("text/plain", resource.getMimeType());
+        assertFalse(resource.exists());
+        assertTrue(resource.isFile());
+        assertTrue(resource.isReadable());
+        assertTrue(resource.isWritable());
     }
 
     @Test
-    void getInputStreamWithMissingFile() throws IOException {
-        Resource resource = SftpResource.create(createUri("missing.txt"), getCredential());
-        assertThrows(FileNotFoundException.class, () -> {
-            getInputStreamAsBytes(resource.getInputStream());
-        });
+    void createDirectory() throws IOException {
+        Resource resource = SftpResource.directory(createUri("dir"), getCredential());
+        assertNotNull(resource);
+        assertEquals("sftp", resource.toURI().getScheme());
+        assertEquals("localhost", resource.toURI().getHost());
+        assertEquals("/dir", resource.toURI().getPath());
+        assertThrows(FileNotFoundException.class, resource::loadAsString);
+        assertEquals("application/octet-stream", resource.getMimeType());
+        assertFalse(resource.exists());
+        assertTrue(resource.isDirectory());
+        assertFalse(resource.isReadable());
+        assertFalse(resource.isWritable());
+    }
+
+    @Test
+    void create() throws IOException {
+        Resource resource = SftpResource.create(createUri("file1.txt"), getCredential());
+        assertNotNull(resource);
+        assertEquals("sftp", resource.toURI().getScheme());
+        assertEquals("localhost", resource.toURI().getHost());
+        assertEquals("/file1.txt", resource.toURI().getPath());
+        assertThrows(FileNotFoundException.class, resource::loadAsString);
+        assertEquals("text/plain", resource.getMimeType());
+        assertFalse(resource.exists());
+        assertTrue(resource.isFile());
+        assertTrue(resource.isReadable());
+        assertTrue(resource.isWritable());
+    }
+
+    @Test
+    void createWithType() throws IOException {
+        Resource resource = SftpResource.create(Resource.Type.FILE, createUri("file1.txt"), getCredential());
+        assertNotNull(resource);
+        assertEquals("sftp", resource.toURI().getScheme());
+        assertEquals("localhost", resource.toURI().getHost());
+        assertEquals("/file1.txt", resource.toURI().getPath());
+        assertThrows(FileNotFoundException.class, resource::loadAsString);
+        assertEquals("text/plain", resource.getMimeType());
+        assertFalse(resource.exists());
+        assertTrue(resource.isFile());
+        assertTrue(resource.isReadable());
+        assertTrue(resource.isWritable());
     }
 
     @Test
@@ -94,9 +141,7 @@ class SftpResourceTest {
     @Test
     void length() throws IOException {
         Resource resource = SftpResource.create(createUri("missing.txt"), getCredential());
-        assertThrows(FileNotFoundException.class, () -> {
-            getInputStreamAsBytes(resource.getInputStream());
-        });
+        assertThrows(FileNotFoundException.class, () -> getInputStreamAsBytes(resource.getInputStream()));
         createFile("file.txt");
         Resource resource2 = SftpResource.create(createUri("file.txt"), getCredential());
         assertEquals(4, resource2.length());
@@ -107,6 +152,42 @@ class SftpResourceTest {
         createFiles();
         Resource resource = SftpResource.create(createUri("list"), getCredential());
         assertEquals(4, resource.list().size());
+    }
+
+    @Test
+    void resolve() throws IOException {
+        Resource root = SftpResource.directory(createUri("directory"), getCredential());
+        root.create();
+        Resource resource = root.resolve("file3.txt").create();
+        assertEquals("file3.txt", resource.getFileName());
+        assertEquals("/directory/file3.txt", resource.getPath());
+    }
+
+    @Test
+    void get() throws IOException {
+        Resource root = SftpResource.directory(createUri("directory"), getCredential());
+        root.create();
+        Resource resource = root.get("/file3.txt", Resource.Type.FILE).create();
+        assertEquals("file3.txt", resource.getFileName());
+        assertEquals("/file3.txt", resource.getPath());
+        assertThrows(ResourceException.class, () -> root.get("file3.txt", Resource.Type.FILE).create());
+    }
+
+    @Test
+    void translateException(){
+        Exception exception= new SftpException(ChannelSftp.OVERWRITE,"");
+        SftpResource resource = (SftpResource) SftpResource.file(createUri("file1.txt"), getCredential());
+        assertEquals(new IOException("SFTP action failed for '" + resource.toURI() + "'",resource.
+                translateException(exception)).getMessage(),resource.translateException(exception).getMessage());
+        exception= new SftpException(ChannelSftp.SSH_FX_PERMISSION_DENIED,"");
+        assertEquals(new IOException("Permission denied for '" + resource.toURI() + "'").getMessage(),
+                resource.translateException(exception).getMessage());
+        exception= new JSchException();
+        assertEquals(new IOException("SSH action failed for '" + resource.toURI() + "'",
+                resource.translateException(exception)).getMessage(),resource.translateException(exception).getMessage());
+        exception= new Exception();
+        assertEquals( new IOException("Unknown failure for resource '" + resource.toURI() + "'",
+                resource.translateException(exception)).getMessage(),resource.translateException(exception).getMessage());
     }
 
     private void createFile(String fileName) throws IOException {
@@ -125,7 +206,7 @@ class SftpResourceTest {
     }
 
     private void createFiles() throws IOException {
-        StatefulResource root = SftpResource.directory(createUri("list"), getCredential());
+        Resource root = SftpResource.directory(createUri("list"), getCredential());
         root.create();
         root.resolve("dir1", Resource.Type.DIRECTORY).create();
         root.resolve("dir2", Resource.Type.DIRECTORY).create();
@@ -135,7 +216,8 @@ class SftpResourceTest {
 
     private static SshServer setupServer() {
         SshServer sshd = SshServer.setUpDefaultServer();
-        sshd.setPort(20000);
+        int port = ThreadLocalRandom.current().nextInt(5_000) + 40_000;
+        sshd.setPort(port);
         SftpSubsystemFactory factory = new SftpSubsystemFactory.Builder()
                 .build();
         sshd.setSubsystemFactories(Collections.singletonList(factory));

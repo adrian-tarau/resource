@@ -2,6 +2,8 @@ package net.microfalx.resource.sftp;
 
 import com.jcraft.jsch.*;
 import net.microfalx.lang.FileUtils;
+import net.microfalx.lang.StringUtils;
+import net.microfalx.lang.UriUtils;
 import net.microfalx.metrics.Metrics;
 import net.microfalx.resource.*;
 
@@ -165,10 +167,18 @@ public class SftpResource extends AbstractStatefulResource<Session, ChannelSftp>
     @Override
     protected Collection<Resource> doList() throws IOException {
         return doWithChannel("list", channel -> {
-            Vector<Object> entries = channel.ls(getRealPath());
+            Vector<ChannelSftp.LsEntry> entries = channel.ls(getRealPath());
             Collection<Resource> children = new ArrayList<>(entries.size());
-            for (Object entry : entries) {
-
+            for (ChannelSftp.LsEntry entry : entries) {
+                Resource resource=null;
+                if(StringUtils.containsWhiteSpacesOnly(entry.getFilename().replace(".",""))) {
+                    continue;
+                } else if (entry.getAttrs().isDir()) {
+                    resource=SftpResource.directory(UriUtils.appendPath(toURI(),entry.getFilename()),getCredential());
+                } else if (!entry.getAttrs().isDir()) {
+                    resource=SftpResource.file(UriUtils.appendPath(toURI(),entry.getFilename()),getCredential());
+                }
+                children.add(resource);
             }
             return children;
         });
