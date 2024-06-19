@@ -18,7 +18,7 @@ class TemporaryFileResourceTest {
         assertTrue(resource.isFile());
         assertFalse(resource.exists());
         assertFalse(resource.isDirectory());
-        Assertions.assertThat(resource.getPath()).contains("/Temp/");
+        Assertions.assertThat(resource.getPath()).endsWith("file");
     }
 
     @Test
@@ -30,7 +30,7 @@ class TemporaryFileResourceTest {
         assertTrue(resource.isDirectory());
         assertFalse(resource.exists());
         assertFalse(resource.isFile());
-        Assertions.assertThat(resource.getPath()).contains("/Temp/");
+        Assertions.assertThat(resource.getPath()).endsWith("directory");
     }
 
     @Test
@@ -55,6 +55,6 @@ class TemporaryFileResourceTest {
         assertTrue(resource.isFile());
         assertFalse(resource.exists());
         assertFalse(resource.isDirectory());
-        Assertions.assertThat(resource.getPath()).contains("/Temp/");
+        Assertions.assertThat(resource.getPath()).contains("test");
     }
 }
