@@ -13,6 +13,8 @@ import java.util.UUID;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.IOUtils.getInputStreamAsBytes;
+import static net.microfalx.lang.StringUtils.EMPTY_STRING;
+import static net.microfalx.lang.StringUtils.defaultIfNull;
 
 /**
  * A resource which is stored in memory.
@@ -48,7 +50,7 @@ public final class MemoryResource extends AbstractResource {
      * @return a non-null instance
      */
     public static Resource create(String text) {
-        requireNonNull(text);
+        text = defaultIfNull(text, EMPTY_STRING);
         MemoryResource resource = (MemoryResource) create(text.getBytes()).withMimeType(MimeType.TEXT_PLAIN);
         resource.setName(ResourceUtils.createName(text));
         return resource;
@@ -62,7 +64,7 @@ public final class MemoryResource extends AbstractResource {
      * @return a non-null instance
      */
     public static Resource create(String text, String fileName) {
-        requireNonNull(text);
+        text = defaultIfNull(text, EMPTY_STRING);
         return create(text.getBytes(), fileName).withMimeType(MimeType.TEXT_PLAIN);
     }
 
