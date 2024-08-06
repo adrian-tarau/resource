@@ -31,7 +31,7 @@
     <parent>
         <groupId>net.microfalx</groupId>
         <artifactId>pom</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </parent>
 
     <name>Resource</name>
@@ -66,21 +66,21 @@
 
     <properties>
         <!-- Runtime -->
-        <logback.version>2.0.11</logback.version>
+        <slf4j.version>2.0.13</slf4j.version>
         <lang.version>1.0.0-SNAPSHOT</lang.version>
         <meters.version>1.0.0-SNAPSHOT</meters.version>
-        <apache.common.compress.version>1.25.0</apache.common.compress.version>
-        <apache.tika.version>2.9.1</apache.tika.version>
-        <sshd.version>2.12.0</sshd.version>
-        <aws.s3.version>1.12.641</aws.s3.version>
+        <apache.common.compress.version>1.26.2</apache.common.compress.version>
+        <apache.tika.version> 2.9.2</apache.tika.version>
+        <sshd.version>2.13.2</sshd.version>
+        <aws.s3.version>1.12.767</aws.s3.version>
         <jsch.version>0.1.55</jsch.version>
-        <rocksdb.version>8.10.0</rocksdb.version>
+        <rocksdb.version>9.4.0</rocksdb.version>
         <!-- Tests -->
-        <junit.version>5.10.1</junit.version>
-        <assertj.version>3.25.1</assertj.version>
-        <mockito.version>5.9.0</mockito.version>
+        <junit.version>5.10.3</junit.version>
+        <assertj.version>3.26.3</assertj.version>
+        <mockito.version>5.12.0</mockito.version>
         <jmh.version>1.37</jmh.version>
-        <awaitility.version>4.2.0</awaitility.version>
+        <awaitility.version>4.2.1</awaitility.version>
         <testcontainers.version>1.19.3</testcontainers.version>
 
         <jacoco.file>jacoco.exec</jacoco.file>
@@ -103,13 +103,13 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>${logback.version}</version>
+                <version>${slf4j.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-simple</artifactId>
-                <version>${logback.version}</version>
+                <version>${slf4j.version}</version>
             </dependency>
 
             <dependency>
