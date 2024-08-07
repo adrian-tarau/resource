@@ -65,23 +65,9 @@
     <inceptionYear>2022</inceptionYear>
 
     <properties>
-        <!-- Runtime -->
-        <slf4j.version>2.0.13</slf4j.version>
+        <bom.version>1.0.0</bom.version>
         <lang.version>1.0.0-SNAPSHOT</lang.version>
         <meters.version>1.0.0-SNAPSHOT</meters.version>
-        <apache.common.compress.version>1.26.2</apache.common.compress.version>
-        <apache.tika.version> 2.9.2</apache.tika.version>
-        <sshd.version>2.13.2</sshd.version>
-        <aws.s3.version>1.12.767</aws.s3.version>
-        <jsch.version>0.1.55</jsch.version>
-        <rocksdb.version>9.4.0</rocksdb.version>
-        <!-- Tests -->
-        <junit.version>5.10.3</junit.version>
-        <assertj.version>3.26.3</assertj.version>
-        <mockito.version>5.12.0</mockito.version>
-        <jmh.version>1.37</jmh.version>
-        <awaitility.version>4.2.1</awaitility.version>
-        <testcontainers.version>1.19.3</testcontainers.version>
 
         <jacoco.file>jacoco.exec</jacoco.file>
         <jacoco.ut.dest>${project.build.directory}/${jacoco.file}</jacoco.ut.dest>
@@ -98,36 +84,12 @@
     <dependencyManagement>
         <dependencies>
 
-            <!-- Runtime -->
-
             <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.jcraft</groupId>
-                <artifactId>jsch</artifactId>
-                <version>${jsch.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk-s3</artifactId>
-                <version>${aws.s3.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>net.microfalx.metrics</groupId>
-                <artifactId>metrics</artifactId>
-                <version>${meters.version}</version>
+                <groupId>net.microfalx.bom</groupId>
+                <artifactId>bom-base</artifactId>
+                <version>1.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <dependency>
@@ -137,81 +99,11 @@
             </dependency>
 
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-compress</artifactId>
-                <version>${apache.common.compress.version}</version>
+                <groupId>net.microfalx.metrics</groupId>
+                <artifactId>metrics</artifactId>
+                <version>${meters.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.apache.tika</groupId>
-                <artifactId>tika-core</artifactId>
-                <version>${apache.tika.version}</version>
-                <optional>true</optional>
-            </dependency>
-
-            <dependency>
-                <groupId>org.rocksdb</groupId>
-                <artifactId>rocksdbjni</artifactId>
-                <version>${rocksdb.version}</version>
-            </dependency>
-
-            <!-- Tests -->
-
-            <dependency>
-                <groupId>org.junit</groupId>
-                <artifactId>junit-bom</artifactId>
-                <version>${junit.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.assertj</groupId>
-                <artifactId>assertj-core</artifactId>
-                <version>${assertj.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.openjdk.jmh</groupId>
-                <artifactId>jmh-core</artifactId>
-                <version>${jmh.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.openjdk.jmh</groupId>
-                <artifactId>jmh-generator-annprocess</artifactId>
-                <version>${jmh.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers</artifactId>
-                <version>${testcontainers.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>junit-jupiter</artifactId>
-                <version>${testcontainers.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.awaitility</groupId>
-                <artifactId>awaitility</artifactId>
-                <version>${awaitility.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.sshd</groupId>
-                <artifactId>sshd-core</artifactId>
-                <version>${sshd.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.sshd</groupId>
-                <artifactId>sshd-sftp</artifactId>
-                <version>${sshd.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -240,6 +132,7 @@
         </dependency>
 
         <!-- Tests -->
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
