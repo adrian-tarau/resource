@@ -22,14 +22,5 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 /.idea/
-/core/target/
-/s3/target/
-/sftp/target/
-/target/
-/core/core.iml
-/s3/s3.iml
-/sftp/sftp.iml
-/ftp/target/
-/ftp/ftp.iml
-/archive/target/
-/rocksdb/target/
+/**/target/
+/**/*.iml
