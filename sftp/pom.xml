@@ -33,7 +33,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <name>Resource - SFTP</name>
+    <name>Resource :: SFTP</name>
 
     <dependencies>
 

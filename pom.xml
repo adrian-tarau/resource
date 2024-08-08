@@ -55,6 +55,7 @@
         <module>sftp</module>
         <module>s3</module>
         <module>rocksdb</module>
+        <module>bom</module>
     </modules>
 
     <issueManagement>
