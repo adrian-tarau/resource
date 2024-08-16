@@ -2,7 +2,9 @@ package net.microfalx.resource;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,18 +36,69 @@ class ClassPathResourceTest extends AbstractResourceTestCase {
     }
 
     @Test
-    void listJarManifests() throws IOException {
+    void create() throws IOException {
         Resource resource = ClassPathResource.create("META-INF/MANIFEST.MF");
         assertTrue(resource.exists());
     }
 
     @Test
-    void delete() throws IOException {
+    void createFile() throws IOException {
+        Resource resource = ClassPathResource.create("dir1/file11.txt", Resource.Type.FILE);
+        assertTrue(resource.exists());
+    }
+
+    @Test
+    void createDirectory() throws IOException {
+        Resource resource = ClassPathResource.create("dir1", Resource.Type.DIRECTORY);
+        assertTrue(resource.exists());
+    }
+
+    @Test
+    void files() throws IOException {
+        Resource resource = ClassPathResource.files("dir1");
+        assertTrue(resource.exists());
+        assertEquals(1,resource.list().size());
+    }
+
+    @Test
+    void resolve() throws IOException {
+        Resource resource = new ClassPathResource(Resource.Type.DIRECTORY, new File("dir1").toURI().toURL(),
+                "dir1");
+        assertTrue(resource.resolve("file11.txt").exists());
+        assertEquals("dir1/file11.txt",resource.resolve("file11.txt").getPath());
+    }
+
+    @Test
+    void resolveFile() throws IOException {
+        Resource resource = new ClassPathResource(Resource.Type.DIRECTORY, new File("dir1").toURI().toURL(),
+                "dir1");
+        assertTrue(resource.resolve("file11.txt", Resource.Type.FILE).exists());
+        assertEquals("dir1/file11.txt",resource.resolve("file11.txt", Resource.Type.FILE).getPath());
+    }
+
+    @Test
+    void get() throws IOException {
+        Resource resource = new ClassPathResource(Resource.Type.DIRECTORY, new File("dir1").toURI().toURL(),
+                "dir1");
+        assertTrue(resource.get("dir1").exists());
+        assertEquals("dir1",resource.get("dir1").getPath());
+    }
+
+    @Test
+    void getFile() throws IOException {
+        Resource resource = new ClassPathResource(Resource.Type.FILE, new File("dir1/file11.txt").toURI().toURL(),
+                "dir1/file11.txt");
+        assertTrue(resource.get("dir1/file11.txt", Resource.Type.FILE).exists());
+        assertEquals("dir1/file11.txt",resource.get("dir1/file11.txt", Resource.Type.FILE).getPath());
+    }
+
+    @Test
+    void delete() {
         assertThrows(IOException.class, () -> ClassPathResource.file("file1.txt").delete());
     }
 
     @Test
-    void write() throws IOException {
+    void write() {
         assertFalse(ClassPathResource.file("file1.txt").isWritable());
         assertThrows(IOException.class, () -> ClassPathResource.file("file1.txt").getOutputStream());
     }
@@ -64,5 +117,32 @@ class ClassPathResourceTest extends AbstractResourceTestCase {
         assertCount(4, 3);
         dir1.walk(visitor);
         assertCount(4, 3);
+    }
+
+    @Test
+    void createCompositeResource() throws IOException {
+        Resource childResource= ClassPathResource.file("dir1/file11.txt");
+        Resource resource= new ClassPathResource.CompositeResource(Resource.Type.DIRECTORY,"dir1",
+                Collections.singletonList(childResource));
+        assertEquals("",resource.getParent().getPath());
+        assertEquals("dir1",resource.getFileName());
+        assertEquals(1718719881354L,resource.lastModified());
+        assertEquals(4,resource.length());
+        assertEquals("file:/C:/Projects/opensource/resource/core/target/test-classes/dir1/file11.txt",
+                resource.toURI().toASCIIString());
+        assertIterableEquals(Collections.singletonList(childResource),resource.list());
+        assertThrows(IllegalStateException.class, resource::getInputStream);
+        ClassPathResource.CompositeResource compositeResource= (ClassPathResource.CompositeResource) resource;
+        assertIterableEquals(Collections.singletonList(childResource),compositeResource.getResources());
+    }
+
+    @Test
+    void createClassPathResourceResolver() throws IOException {
+        ClassPathResource.ClassPathResourceResolver classPathResourceResolver=
+                new ClassPathResource.ClassPathResourceResolver();
+        Resource resource = new ClassPathResource(Resource.Type.DIRECTORY, new File("dir1").toURI().toURL(),
+                "dir1");
+        assertFalse(classPathResourceResolver.supports(resource.toURI()));
+        assertEquals("/dev/null",classPathResourceResolver.resolve(resource.toURI(), Resource.Type.DIRECTORY).getPath());
     }
 }
