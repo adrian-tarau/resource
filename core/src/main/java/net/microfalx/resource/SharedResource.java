@@ -18,21 +18,21 @@ import static net.microfalx.resource.ResourceUtils.hash;
 /**
  * A resource which is resolved as a relative path inside another resource.
  *
- * @see ResourceFactory#getRoot()
+ * @see ResourceFactory#getShared()
  */
 public class SharedResource extends AbstractResource {
 
     private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("Shared");
 
     private final String path;
-    private String fragment;
+    private final String fragment;
 
     /**
      * Create a new shared resource from a file.
      *
      * @param path the path (relative to the root) of the resource
      * @return a non-null instance
-     * @see ResourceFactory#getRoot()
+     * @see ResourceFactory#getShared()
      */
     public static Resource create(String path) {
         requireNonNull(path);
@@ -44,7 +44,7 @@ public class SharedResource extends AbstractResource {
      *
      * @param path the path (relative to the root) of the resource
      * @return a non-null instance
-     * @see ResourceFactory#getRoot()
+     * @see ResourceFactory#getShared()
      */
     public static Resource file(String path) {
         return file(path, null);
@@ -55,7 +55,7 @@ public class SharedResource extends AbstractResource {
      *
      * @param path the path (relative to the root) of the resource
      * @return a non-null instance
-     * @see ResourceFactory#getRoot()
+     * @see ResourceFactory#getShared()
      */
     public static Resource file(String path, String fragment) {
         requireNonNull(path);
@@ -67,7 +67,7 @@ public class SharedResource extends AbstractResource {
      *
      * @param path the path (relative to the root) of the resource
      * @return a non-null instance
-     * @see ResourceFactory#getRoot()
+     * @see ResourceFactory#getShared()
      */
     public static Resource directory(String path) {
         return directory(path, null);
@@ -78,7 +78,7 @@ public class SharedResource extends AbstractResource {
      *
      * @param path the path (relative to the root) of the resource
      * @return a non-null instance
-     * @see ResourceFactory#getRoot()
+     * @see ResourceFactory#getShared()
      */
     public static Resource directory(String path, String fragment) {
         requireNonNull(path);
@@ -187,7 +187,7 @@ public class SharedResource extends AbstractResource {
      * @return a non-null instance
      */
     public Resource getDelegatingResource(boolean resolveSymlinks) {
-        Resource root = ResourceFactory.getRoot();
+        Resource root = ResourceFactory.getShared();
         if (root == null) {
             throw new ResourceException("The root of the shared resources is not set");
         }

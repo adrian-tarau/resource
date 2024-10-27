@@ -1,6 +1,7 @@
 package net.microfalx.resource;
 
 import net.microfalx.metrics.Metrics;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.net.URI;
@@ -26,7 +27,8 @@ import static net.microfalx.resource.ResourceUtils.hash;
  */
 public class FileResource extends AbstractResource {
 
-    static final long serialVersionUID = 8384627536253212324L;
+    @Serial
+    private static final long serialVersionUID = 8384627536253212324L;
 
     private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("File");
 
@@ -109,7 +111,7 @@ public class FileResource extends AbstractResource {
      * Creates a file resource out of another resource.
      *
      * @param resource the original resource.
-     * @return the resource mappend to a file
+     * @return the resource mapped to a file
      * @throws IOException if an I/O error occurs
      */
     public static Resource create(Resource resource) throws IOException {
@@ -151,6 +153,7 @@ public class FileResource extends AbstractResource {
 
     @Override
     public final OutputStream doGetOutputStream() throws IOException {
+        createParent();
         return getBufferedOutputStream(file);
     }
 
@@ -158,6 +161,7 @@ public class FileResource extends AbstractResource {
     public final void doCreate() throws IOException {
         if (exists()) return;
         if (getType() == Type.FILE) {
+            createParent();
             appendStream(getWriter(), new StringReader(EMPTY_STRING));
         } else {
             if (!ResourceUtils.retryWithStatus(this, resource -> file.mkdirs())) {
@@ -269,6 +273,19 @@ public class FileResource extends AbstractResource {
     @Override
     protected Metrics getMetrics() {
         return METRICS;
+    }
+
+    @Override
+    protected void afterEmpty() throws IOException {
+        super.afterEmpty();
+        FileUtils.cleanDirectory(file);
+    }
+
+    private void createParent() throws IOException {
+        if (!ResourceUtils.retryWithStatus(this, resource -> file.getParentFile().exists() || file.getParentFile().mkdirs())) {
+            throw new IOException("Parent directory ('" + file.getParentFile() + "') does not exist and could not be created");
+        }
+
     }
 
     public static class FileResourceResolver implements ResourceResolver {

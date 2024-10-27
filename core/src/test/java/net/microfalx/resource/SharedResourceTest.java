@@ -14,7 +14,7 @@ class lSharedResourceTest extends AbstractResourceTestCase {
 
     @BeforeEach
     void before() {
-        ResourceFactory.setRoot(ClassPathResource.file("dir3").toFile());
+        ResourceFactory.setShared(ClassPathResource.file("dir3").toFile());
     }
 
     @Test

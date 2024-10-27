@@ -2,6 +2,8 @@ package net.microfalx.resource;
 
 import net.microfalx.lang.AnnotationUtils;
 import net.microfalx.lang.JvmUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -11,7 +13,6 @@ import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Logger;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.StringUtils.removeEndSlash;
@@ -23,14 +24,16 @@ import static net.microfalx.resource.ResourceUtils.toUri;
  */
 public class ResourceFactory {
 
-    private static Logger LOGGER = Logger.getLogger(ResourceFactory.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceFactory.class.getName());
 
     private static final List<ResourceResolver> resolvers = new CopyOnWriteArrayList<>();
     private static final List<ResourceProcessor> processors = new CopyOnWriteArrayList<>();
     private static final List<MimeTypeResolver> mimeTypeResolvers = new CopyOnWriteArrayList<>();
     private static final Map<String, Resource> links = new ConcurrentHashMap<>();
 
-    private static volatile Resource root;
+    private static volatile Resource temporary;
+    private static volatile Resource workspace;
+    private static volatile Resource shared;
 
     /**
      * Creates a resource from a URI.
@@ -71,26 +74,82 @@ public class ResourceFactory {
     }
 
     /**
-     * Returns the root resource used for the shared resources.
+     * Returns the resource used for the shared resources.
      *
      * @return the resource, null if not set
      * @see SharedResource
      */
-    public static Resource getRoot() {
-        return root;
+    public static Resource getShared() {
+        return shared;
     }
 
     /**
-     * Changes the root resource used for the shared resources.
+     * Changes the resource used for the shared resources.
      *
-     * @param root the root
+     * @param shared the shared resource
      */
-    public static void setRoot(Resource root) {
-        requireNonNull(root);
-        if (root.getType() == Resource.Type.FILE) {
-            throw new IllegalArgumentException("Only a directory can be the root of the shared resources, received '" + root.toURI() + "'");
+    public static void setShared(Resource shared) {
+        requireNonNull(shared);
+        if (shared.getType() == Resource.Type.FILE) {
+            throw new IllegalArgumentException("Only a directory can be used for shared resources, received '" + shared.toURI() + "'");
         }
-        ResourceFactory.root = root;
+        LOGGER.info("Change shared resources to '{}'", shared.toURI());
+        ResourceFactory.shared = shared;
+    }
+
+    /**
+     * Returns the resource used for the process workspace (data preserved between restarts).
+     *
+     * @return the resource, null if not set
+     * @see SharedResource
+     */
+    public static Resource getWorkspace() {
+        return workspace;
+    }
+
+    /**
+     * Changes the resource used for the process workspace (data preserved between restarts).
+     *
+     * @param workspace the workspace
+     */
+    public static void setWorkspace(Resource workspace) {
+        requireNonNull(workspace);
+        if (workspace.getType() == Resource.Type.FILE) {
+            throw new IllegalArgumentException("Only a directory can be used for workspace, received '" + workspace.toURI() + "'");
+        }
+        if (!workspace.isLocal()) {
+            throw new IllegalArgumentException("The temporary directory need to be a local resource");
+        }
+        LOGGER.info("Change workspace resources to '{}'", workspace.toURI());
+        ResourceFactory.workspace = workspace;
+    }
+
+    /**
+     * Returns the resource used for the process temporary resources.
+     *
+     * @return the resource, null if not set
+     * @see SharedResource
+     */
+    public static Resource getTemporary() {
+        return temporary;
+    }
+
+    /**
+     * Changes the resource used for the process temporary resources.
+     *
+     * @param temporary the workspace
+     */
+    public static void setTemporary(Resource temporary) {
+        requireNonNull(temporary);
+        if (temporary.getType() == Resource.Type.FILE) {
+            throw new IllegalArgumentException("Only a directory can be used for workspace, received '" + workspace.toURI() + "'");
+        }
+        if (!temporary.isLocal()) {
+            throw new IllegalArgumentException("The temporary directory need to be a local resource");
+        }
+        LOGGER.info("Change temporary resources to '{}'", temporary.toURI());
+        ResourceFactory.temporary = temporary;
+        JvmUtils.setTemporaryDirectory(((FileResource) temporary.toFile()).getFile());
     }
 
     /**
@@ -185,7 +244,6 @@ public class ResourceFactory {
     public static String detect(InputStream inputStream, String fileName) throws IOException {
         requireNonNull(fileName);
         requireNonNull(inputStream);
-
         BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
         for (MimeTypeResolver mimeTypeResolver : getMimeTypeResolvers()) {
             String mimeType = mimeTypeResolver.detect(bufferedInputStream, fileName);
@@ -238,31 +296,34 @@ public class ResourceFactory {
     static void initialize() {
         if (!resolvers.isEmpty()) return;
 
-        LOGGER.fine("Initialize resource resolvers");
+        LOGGER.info("Initialize resource resolvers");
         ServiceLoader<ResourceResolver> resolvers = ServiceLoader.load(ResourceResolver.class);
         for (ResourceResolver resolver : resolvers) {
-            LOGGER.fine(" - " + resolver.getClass().getName());
+            LOGGER.info(" - {}", resolver.getClass().getName());
             ResourceFactory.resolvers.add(resolver);
         }
         AnnotationUtils.sort(ResourceFactory.resolvers);
 
-        LOGGER.fine("Initialize resource processors");
+        LOGGER.info("Initialize resource processors");
         ServiceLoader<ResourceProcessor> processors = ServiceLoader.load(ResourceProcessor.class);
         for (ResourceProcessor processor : processors) {
-            LOGGER.fine(" - " + processor.getClass().getName());
+            LOGGER.info(" - {}", processor.getClass().getName());
             ResourceFactory.processors.add(processor);
         }
         AnnotationUtils.sort(ResourceFactory.processors);
 
-        LOGGER.fine("Initialize mime type resolvers");
+        LOGGER.info("Initialize mime type resolvers");
         ServiceLoader<MimeTypeResolver> mimeTypeResolvers = ServiceLoader.load(MimeTypeResolver.class);
         for (MimeTypeResolver mimeTypeResolver : mimeTypeResolvers) {
-            LOGGER.fine(" - " + mimeTypeResolver.getClass().getName());
+            LOGGER.info(" - {}", mimeTypeResolver.getClass().getName());
             ResourceFactory.mimeTypeResolvers.add(mimeTypeResolver);
         }
         AnnotationUtils.sort(ResourceFactory.mimeTypeResolvers);
 
         File shared = new File(JvmUtils.getHomeDirectory(), ".shared");
-        setRoot(FileResource.directory(shared));
+        setShared(FileResource.directory(shared));
+        File workspace = new File(JvmUtils.getHomeDirectory(), ".workspace");
+        setWorkspace(FileResource.directory(workspace));
+        setTemporary(FileResource.directory(JvmUtils.getTemporaryDirectory()));
     }
 }

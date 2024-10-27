@@ -147,13 +147,23 @@ public class ResourceUtils {
     }
 
     /**
+     * Returns the file behind a local resource.
+     *
+     * @param resource the resource
+     * @return the file
+     */
+    public static File toFile(Resource resource) {
+        return ((FileResource) resource.toFile()).getFile();
+    }
+
+    /**
      * Creates a resource name out of a body of text.
      * <p>
      * Only first {@link #MAX_BODY_LENGTH} characters are considered and the name is limited truncated in the middle
      * at {@link #MAX_NAME_LENGTH} length.
      *
      * @param text the original text.
-     * @return the name, N/A if the original text was emtpy
+     * @return the name, N/A if the original text was empty
      */
     public static String createName(String text) {
         if (StringUtils.isEmpty(text)) return StringUtils.NA_STRING;

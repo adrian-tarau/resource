@@ -195,6 +195,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     public final Resource delete() throws IOException {
         return time("Delete", () -> {
             if (isDirectory()) empty();
+            afterEmpty();
             doDelete();
             return this;
         });
@@ -217,12 +218,12 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public final Resource copyFrom(Resource resource) {
+    public final Resource copyFrom(Resource resource) throws IOException {
         return copyFrom(resource, MAX_DEPTH);
     }
 
     @Override
-    public final Resource copyFrom(Resource resource, int depth) {
+    public final Resource copyFrom(Resource resource, int depth) throws IOException {
         requireNonNull(resource);
         return time("Copy", () -> {
             Resource self = doCopyFrom(resource, depth);
@@ -236,8 +237,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
         requireNonNull(resource);
         return time("Copy Properties", () -> {
             this.mimeType = resource.getMimeType();
-            if (resource instanceof AbstractResource) {
-                AbstractResource otherResource = (AbstractResource) resource;
+            if (resource instanceof AbstractResource otherResource) {
                 this.name = otherResource.name;
                 this.description = otherResource.description;
                 if (otherResource.attributes != null) {
@@ -598,6 +598,15 @@ public abstract class AbstractResource implements Resource, Cloneable {
     protected void updateHash(Hashing hashing) {
         hashing.update(getId());
         hashing.update(toURI().toASCIIString());
+    }
+
+    /**
+     * Invoked after all files visible to the resource, at any depth, were removed to perform additional cleanups.
+     *
+     * @throws IOException if any I/O exception occurs
+     */
+    protected void afterEmpty() throws IOException {
+        // empty by design
     }
 
     /**

@@ -22,6 +22,24 @@ public interface Resource extends Serializable {
     Resource NULL = NullResource.createNull();
 
     /**
+     * Returns the resource used for the process workspace (data preserved between restarts).
+     *
+     * @return a non-null instance
+     */
+    static Resource workspace() {
+        return ResourceFactory.getWorkspace();
+    }
+
+    /**
+     * Returns the resource used for the process temporary resources.
+     *
+     * @return a non-null instance
+     */
+    static Resource temporary() {
+        return ResourceFactory.getTemporary();
+    }
+
+    /**
      * Returns the credential used to access the resource.
      *
      * @return a non-null instance
@@ -421,7 +439,7 @@ public interface Resource extends Serializable {
      * @return self
      * @see #copyFrom(Resource, int)
      */
-    Resource copyFrom(Resource resource);
+    Resource copyFrom(Resource resource) throws IOException;
 
     /**
      * Copies the given resource (and all sub-resources).
@@ -431,7 +449,7 @@ public interface Resource extends Serializable {
      * @param resource the resource
      * @return self
      */
-    Resource copyFrom(Resource resource, int depth);
+    Resource copyFrom(Resource resource, int depth) throws IOException;
 
     /**
      * Copies properties from another resources.
