@@ -278,7 +278,7 @@ public class FileResource extends AbstractResource {
     @Override
     protected void afterEmpty() throws IOException {
         super.afterEmpty();
-        FileUtils.cleanDirectory(file);
+        if (file.isDirectory()) FileUtils.cleanDirectory(file);
     }
 
     private void createParent() throws IOException {
