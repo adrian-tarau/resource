@@ -360,10 +360,18 @@ public interface Resource extends Serializable {
     /**
      * Returns an attribute associated with the resource.
      *
-     * @param name the name
+     * @param name the name of the attribute
      * @return the value, null if it does not exist
      */
     <T> T getAttribute(String name);
+
+    /**
+     * Returns whether the resource has an attribute with a given name.
+     *
+     * @param name the name of the attribute
+     * @return {@code true} if the attribute exists, {@code false} otherwise
+     */
+    boolean hasAttribute(String name);
 
     /**
      * Lists child resources.

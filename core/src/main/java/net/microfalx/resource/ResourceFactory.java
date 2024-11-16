@@ -10,10 +10,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static java.util.Collections.unmodifiableCollection;
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.StringUtils.removeEndSlash;
 import static net.microfalx.lang.StringUtils.removeStartSlash;
@@ -93,7 +97,9 @@ public class ResourceFactory {
         if (shared.getType() == Resource.Type.FILE) {
             throw new IllegalArgumentException("Only a directory can be used for shared resources, received '" + shared.toURI() + "'");
         }
-        LOGGER.info("Change shared resources to '{}'", shared.toURI());
+        if (ResourceFactory.workspace != null) {
+            LOGGER.info("Change shared resources from '{}' to '{}'", ResourceFactory.shared.toURI(), shared.toURI());
+        }
         ResourceFactory.shared = shared;
     }
 
@@ -120,7 +126,9 @@ public class ResourceFactory {
         if (!workspace.isLocal()) {
             throw new IllegalArgumentException("The temporary directory need to be a local resource");
         }
-        LOGGER.info("Change workspace resources to '{}'", workspace.toURI());
+        if (ResourceFactory.workspace != null) {
+            LOGGER.info("Change workspace resources from '{}' to '{}'", ResourceFactory.workspace.toURI(), workspace.toURI());
+        }
         ResourceFactory.workspace = workspace;
     }
 
@@ -147,7 +155,9 @@ public class ResourceFactory {
         if (!temporary.isLocal()) {
             throw new IllegalArgumentException("The temporary directory need to be a local resource");
         }
-        LOGGER.info("Change temporary resources to '{}'", temporary.toURI());
+        if (ResourceFactory.temporary != null) {
+            LOGGER.info("Change temporary resources from '{}' to '{}'", ResourceFactory.temporary.toURI(), temporary.toURI());
+        }
         ResourceFactory.temporary = temporary;
         JvmUtils.setTemporaryDirectory(((FileResource) temporary.toFile()).getFile());
     }
@@ -159,7 +169,7 @@ public class ResourceFactory {
      */
     public static Collection<ResourceResolver> getResolvers() {
         initialize();
-        return Collections.unmodifiableCollection(resolvers);
+        return unmodifiableCollection(resolvers);
     }
 
     /**
@@ -169,7 +179,7 @@ public class ResourceFactory {
      */
     public static Collection<ResourceProcessor> getProcessors() {
         initialize();
-        return Collections.unmodifiableCollection(processors);
+        return unmodifiableCollection(processors);
     }
 
     /**
@@ -179,7 +189,7 @@ public class ResourceFactory {
      */
     public static Collection<MimeTypeResolver> getMimeTypeResolvers() {
         initialize();
-        return Collections.unmodifiableCollection(mimeTypeResolvers);
+        return unmodifiableCollection(mimeTypeResolvers);
     }
 
     /**
@@ -197,7 +207,7 @@ public class ResourceFactory {
     }
 
     /**
-     * Resolves a symlink, if one matching the path is registered.
+     * Resolves a symlink if one matching the path is registered.
      *
      * @param path the requested path
      * @return the resource, null if the patch does not match a symlinked resource
@@ -282,7 +292,7 @@ public class ResourceFactory {
     }
 
     /**
-     * Clears any caches use by providers.
+     * Clears any cache used by providers.
      */
     public static void clearCache() {
         for (ResourceResolver resolver : resolvers) {
@@ -291,34 +301,42 @@ public class ResourceFactory {
     }
 
     /**
-     * Initializes the providers
+     * Initializes the providers.
      */
     static void initialize() {
         if (!resolvers.isEmpty()) return;
+        synchronized (ResourceFactory.class) {
+            if (resolvers.isEmpty()) doInitialize();
+        }
+    }
 
-        LOGGER.info("Initialize resource resolvers");
+    private static void doInitialize() {
+        LOGGER.debug("Initialize resource resolvers:");
         ServiceLoader<ResourceResolver> resolvers = ServiceLoader.load(ResourceResolver.class);
         for (ResourceResolver resolver : resolvers) {
-            LOGGER.info(" - {}", resolver.getClass().getName());
+            LOGGER.debug(" - {}", resolver.getClass().getName());
             ResourceFactory.resolvers.add(resolver);
         }
         AnnotationUtils.sort(ResourceFactory.resolvers);
+        LOGGER.info("Initialized " + ResourceFactory.resolvers.size() + " resource resolvers");
 
-        LOGGER.info("Initialize resource processors");
+        LOGGER.debug("Initialize resource processors");
         ServiceLoader<ResourceProcessor> processors = ServiceLoader.load(ResourceProcessor.class);
         for (ResourceProcessor processor : processors) {
-            LOGGER.info(" - {}", processor.getClass().getName());
+            LOGGER.debug(" - {}", processor.getClass().getName());
             ResourceFactory.processors.add(processor);
         }
         AnnotationUtils.sort(ResourceFactory.processors);
+        LOGGER.info("Initialized " + ResourceFactory.processors.size() + " resource processors");
 
-        LOGGER.info("Initialize mime type resolvers");
+        LOGGER.debug("Initialize mime type resolvers");
         ServiceLoader<MimeTypeResolver> mimeTypeResolvers = ServiceLoader.load(MimeTypeResolver.class);
         for (MimeTypeResolver mimeTypeResolver : mimeTypeResolvers) {
-            LOGGER.info(" - {}", mimeTypeResolver.getClass().getName());
+            LOGGER.debug(" - {}", mimeTypeResolver.getClass().getName());
             ResourceFactory.mimeTypeResolvers.add(mimeTypeResolver);
         }
         AnnotationUtils.sort(ResourceFactory.mimeTypeResolvers);
+        LOGGER.info("Initialized " + ResourceFactory.mimeTypeResolvers.size() + " mime type resolvers");
 
         File shared = new File(JvmUtils.getHomeDirectory(), ".shared");
         setShared(FileResource.directory(shared));
