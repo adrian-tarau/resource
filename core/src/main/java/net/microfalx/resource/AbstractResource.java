@@ -122,7 +122,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public boolean hasAttribute(String name) {
         requireNonNull(name);
-        return attributes == null ? null : attributes.containsKey(name);
+        return attributes != null && attributes.containsKey(name);
     }
 
     @Override
