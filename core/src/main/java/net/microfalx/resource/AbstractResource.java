@@ -449,10 +449,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final String getDescription() {
-        if (isNotEmpty(description)) {
-            return description;
-        }
-        return getName();
+        return description;
     }
 
     public final Resource withDescription(String description) {
