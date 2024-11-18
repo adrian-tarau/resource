@@ -16,11 +16,11 @@ import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.ExceptionUtils.throwException;
+import static net.microfalx.lang.FileUtils.removeFileExtension;
 import static net.microfalx.lang.IOUtils.*;
 import static net.microfalx.lang.StringUtils.*;
 import static net.microfalx.resource.MimeType.APPLICATION_OCTET_STREAM;
-import static net.microfalx.resource.ResourceUtils.METRICS;
-import static net.microfalx.resource.ResourceUtils.SLASH;
+import static net.microfalx.resource.ResourceUtils.*;
 
 /**
  * A skeleton implementation for a resource.
@@ -74,8 +74,9 @@ public abstract class AbstractResource implements Resource, Cloneable {
     public final String getName() {
         if (isNotEmpty(name)) {
             return name;
+        } else {
+            return capitalizeWords(removeFileExtension(getFileName()));
         }
-        return getFileName();
     }
 
     protected final void setName(String name) {
@@ -248,7 +249,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
                 this.description = otherResource.description;
                 if (otherResource.attributes != null) {
                     if (this.attributes == null) this.attributes = new HashMap<>();
-                    otherResource.attributes.putAll(this.attributes);
+                    this.attributes.putAll(otherResource.attributes);
                 }
             }
             return this;
@@ -379,9 +380,9 @@ public abstract class AbstractResource implements Resource, Cloneable {
         String resourcePath = removeEndSlash(UriUtils.removeFragment(resource.toURI()).toASCIIString());
         String path = removeEndSlash(this.toURI().toASCIIString());
         if (path.length() > resourcePath.length()) {
-            return path.substring(resourcePath.length() + 1);
+            return addStartSlash(path.substring(resourcePath.length() + 1));
         }
-        return EMPTY_STRING;
+        return SLASH;
     }
 
     @Override
@@ -397,8 +398,19 @@ public abstract class AbstractResource implements Resource, Cloneable {
             }
         }
         String path = uri.getPath();
-        if (isEmpty(path)) path = ResourceUtils.SLASH;
-        return path;
+        if (isEmpty(path)) path = SLASH;
+        return addStartSlash(path);
+    }
+
+    @Override
+    public final String getPath(boolean original) {
+        if (original && hasAttribute(PATH_ATTR)) {
+            String path = getAttribute(PATH_ATTR);
+            if (isNotEmpty(path)) {
+                return addStartSlash(path);
+            }
+        }
+        return getPath();
     }
 
     @Override
@@ -463,6 +475,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
         AbstractResource copy = copy();
         if (copy.attributes == null) copy.attributes = new HashMap<>();
         copy.attributes.put(name, value);
+        copy.hash = null;
         return copy;
     }
 
@@ -475,6 +488,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
             AbstractResource copy = copy();
             if (copy.attributes == null) copy.attributes = new HashMap<>();
             copy.attributes.putAll(attributes);
+            copy.hash = null;
             return copy;
         }
     }
@@ -562,7 +576,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
         if (hash == null) {
             Hashing hashing = Hashing.create();
             hashing.update(getClass().getName());
-            updateHash(hashing);
+            updateHash(hashing, true);
             hash = hashing.asString();
         }
         return hash;
@@ -594,13 +608,34 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     /**
-     * Updates a hash based on resource URI.
+     * Updates a hash based on resource attributes.
      * <p>
      * Subclasses can change the way how the hash is calculated.
+     *
+     * @param hashing the hashing class
+     * @param useUri {@code true} to use URI to calculate hash, @{code false otherwise}
      */
-    protected void updateHash(Hashing hashing) {
-        hashing.update(getId());
-        hashing.update(toURI().toASCIIString());
+    protected void updateHash(Hashing hashing, boolean useUri) {
+        URI uri = toURI();
+        boolean hasAttrs = false;
+        if (!isFileUri(uri)) {
+            if (uri.getScheme() != null) hashing.update(uri.getScheme());
+            if (uri.getAuthority() != null) hashing.update(uri.getAuthority());
+        }
+        String originalPath = getAttribute(PATH_ATTR);
+        if (isNotEmpty(originalPath)) {
+            hasAttrs = true;
+            hashing.update(addStartSlash(originalPath));
+        }
+        if (useUri) hashing.update(toIdentifier(getFileName()));
+        String externalHash = getAttribute(HASH_ATTR);
+        if (externalHash != null) {
+            hasAttrs = true;
+            hashing.update(externalHash);
+        }
+        if (!hasAttrs && useUri) {
+            hashing.update(removeEndSlash(uri.toASCIIString()));
+        }
     }
 
     /**
@@ -665,7 +700,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
      * @return {@code true} if a fragment is present, {@code false} otherwise
      */
     protected final boolean hasFragment() {
-        return StringUtils.isNotEmpty(getFragment());
+        return isNotEmpty(getFragment());
     }
 
     /**
@@ -684,7 +719,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
      * @return a non-null instance
      */
     protected String getSubPath(String path) {
-        return removeEndSlash(this.getPath()) + ResourceUtils.SLASH + removeStartSlash(path);
+        return removeEndSlash(this.getPath()) + SLASH + removeStartSlash(path);
     }
 
     /**

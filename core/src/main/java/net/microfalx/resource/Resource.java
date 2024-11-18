@@ -15,14 +15,25 @@ import java.util.Map;
 public interface Resource extends Serializable {
 
     /**
+     * An attribute which carries the original path of a resource relative to the top resource.
+     */
+    String PATH_ATTR = "path";
+
+    /**
+     * An attribute which carries a unique piece of information (a hash) based on original properties of the resource.
+     * The hash can be used to calculate a natural identifier which uniquely identifies the resource
+     */
+    String HASH_ATTR = "hash";
+
+    /**
      * A resource which does not exist.
      * <p>
-     * The resource is a valid reference, but it has not content and any write is ignored.
+     * The resource is a valid reference, but it has no content and any modification is ignored.
      */
     Resource NULL = NullResource.createNull();
 
     /**
-     * Returns the resource used for the process workspace (data preserved between restarts).
+     * Returns the directory resource used for the process workspace (data preserved between restarts).
      *
      * @return a non-null instance
      */
@@ -31,12 +42,30 @@ public interface Resource extends Serializable {
     }
 
     /**
-     * Returns the resource used for the process temporary resources.
+     * Returns the directory resource used for the process temporary resources.
      *
      * @return a non-null instance
      */
     static Resource temporary() {
         return ResourceFactory.getTemporary();
+    }
+
+    /**
+     * Returns the file resource based on a local file.
+     *
+     * @return a non-null instance
+     */
+    static Resource file(File file) {
+        return FileResource.file(file);
+    }
+
+    /**
+     * Returns the directory resource based on a local file.
+     *
+     * @return a non-null instance
+     */
+    static Resource directory(File file) {
+        return FileResource.directory(file);
     }
 
     /**
@@ -138,6 +167,17 @@ public interface Resource extends Serializable {
      * @return the path
      */
     String getPath();
+
+    /**
+     * Returns the resource path relative to the <code>root</code>.
+     * <p>
+     * The path will always start with "/". If an attribute {@link #PATH_ATTR} is not available,
+     * the current path is returned.
+     *
+     * @param original {@code true} to use the original path, {@code false} otherwise
+     * @return the path
+     */
+    String getPath(boolean original);
 
     /**
      * Returns the fragment associated with the resources.

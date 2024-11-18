@@ -1,6 +1,7 @@
 package net.microfalx.resource;
 
 import net.microfalx.lang.Hashing;
+import net.microfalx.lang.StringUtils;
 import net.microfalx.metrics.Metrics;
 
 import java.io.*;
@@ -40,7 +41,7 @@ public final class MemoryResource extends AbstractResource {
      */
     public static Resource create(Resource resource) throws IOException {
         byte[] data = getInputStreamAsBytes(resource.getInputStream());
-        return create(data, resource.getName());
+        return create(data, resource.getFileName());
     }
 
     /**
@@ -178,7 +179,9 @@ public final class MemoryResource extends AbstractResource {
     @Override
     public URI toURI() {
         try {
-            return new URI("memory://" + getId() + "/" + getFileName());
+            String path = StringUtils.removeStartSlash(getFileName());
+            if (!getFileName().equals(getId())) path = getId() + "/" + getFileName();
+            return new URI("memory:/" + path);
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
         }
@@ -190,7 +193,8 @@ public final class MemoryResource extends AbstractResource {
     }
 
     @Override
-    protected void updateHash(Hashing hashing) {
+    protected void updateHash(Hashing hashing, boolean useUri) {
+        super.updateHash(hashing, false);
         hashing.update(data);
     }
 

@@ -153,6 +153,15 @@ class FileResourceTest extends AbstractResourceTestCase {
     }
 
     @Test
+    void toHash() {
+        Resource resource = FileResource.file(new File("file3.txt"));
+        assertEquals("8bd0e43479f238c4fd747961cc4b2ee4", resource.toHash());
+        assertEquals("1c7690a1699c2191f59555920c2d28ff", resource.withAttribute(Resource.PATH_ATTR, "path1").toHash());
+        assertEquals("c898172e147b1adca7d6617a279b7c22", resource.withAttribute(Resource.HASH_ATTR, "xxxxxx").toHash());
+        assertEquals("d95d7abdf7f633860099814ecf9b2119", resource.withAttribute(Resource.HASH_ATTR, "xxxxxx").withAttribute(Resource.PATH_ATTR, "path1").toHash());
+    }
+
+    @Test
     void supports() {
         FileResource.FileResourceResolver fileResourceResolver = new FileResource.FileResourceResolver();
         assertFalse(fileResourceResolver.supports(URI.create("https://www.google.com/")));

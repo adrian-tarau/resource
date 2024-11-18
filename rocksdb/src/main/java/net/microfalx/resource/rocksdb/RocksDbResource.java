@@ -120,9 +120,8 @@ public class RocksDbResource extends AbstractResource {
 
     @Override
     protected InputStream doGetInputStream(boolean raw) throws IOException {
-        try {
+        try (ReadOptions options = new ReadOptions()) {
             RocksDB db = getDb();
-            ReadOptions options = new ReadOptions();
             byte[] content = db.get(options, getId().getBytes());
             if (content != null) {
                 return new ByteArrayInputStream(content, HEADER_SIZE, content.length - HEADER_SIZE);
@@ -238,10 +237,8 @@ public class RocksDbResource extends AbstractResource {
         doo.writeLong(currentTimeMillis());
         byte[] header = buffer.toByteArray();
         System.arraycopy(header, 0, data, 0, header.length);
-
-        try {
+        try (WriteOptions options = new WriteOptions()) {
             RocksDB db = getDb();
-            WriteOptions options = new WriteOptions();
             db.put(options, getId().getBytes(), data);
         } catch (RocksDBException e) {
             throw new IOException("Failed to write content for database " + resource + "#" + path, e);
