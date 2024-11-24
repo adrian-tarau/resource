@@ -6,6 +6,7 @@ import net.microfalx.lang.StringUtils;
 import net.microfalx.metrics.Metrics;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -154,6 +155,34 @@ public class ResourceUtils {
      */
     public static File toFile(Resource resource) {
         return ((FileResource) resource.toFile()).getFile();
+    }
+
+    /**
+     * Returns whether the resource exists.
+     * <p>
+     * If an exception is raised or the resource is null, it is considered that the resource does not exist.
+     *
+     * @param resource the resource (it can be NULL)
+     * @return {@code true} if exists, {@code false} otherwise
+     * @see Resource#exists()
+     */
+    public static boolean exists(Resource resource) {
+        try {
+            return resource != null && resource.exists();
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Returns the string representation of the URI if the resource exists.
+     *
+     * @param resource the resource
+     * @return the URI as string, null if the resource is null or it does not exists
+     * @see Resource#exists()
+     */
+    public static String toUri(Resource resource) {
+        return resource != null && exists(resource) ? resource.toURI().toASCIIString() : null;
     }
 
     /**
