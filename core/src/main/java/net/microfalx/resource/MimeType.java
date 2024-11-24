@@ -17,6 +17,7 @@ public enum MimeType {
     TEXT_JAVASCRIPT("text/javascript", true),
     TEXT_HTML("text/html", true),
     TEXT_XML("text/xml", true),
+    TEXT_CSV("text/csv", true),
     TEXT("text/*", true),
 
     IMAGE_PNG("image/png", false),
