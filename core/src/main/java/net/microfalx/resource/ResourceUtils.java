@@ -234,6 +234,25 @@ public class ResourceUtils {
     }
 
     /**
+     * Compare whether two resources have the same content.
+     * <p>
+     * The resources are also considered to have the same content if they are both null references
+     * (basically no content).
+     *
+     * @param firstResource  the first resource
+     * @param secondResource the second resource
+     * @return {@code true} if resources are the same
+     * @throws IOException if the resource content cannot be processed
+     */
+    public static boolean hasSameContent(Resource firstResource, Resource secondResource) throws IOException {
+        if (firstResource == null && secondResource == null) return true;
+        if (!(firstResource != null && secondResource != null)) return false;
+        String firstHash = Hashing.create().update(firstResource.getInputStream()).asString();
+        String secondHash = Hashing.create().update(secondResource.getInputStream()).asString();
+        return firstHash.equals(secondHash);
+    }
+
+    /**
      * Returns whether the file looks like a directory (ends with "/").
      *
      * @param file the URI (as a string) to check

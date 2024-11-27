@@ -137,6 +137,18 @@ class ResourceUtilsTest {
     }
 
     @Test
+    void hasSameContent() throws IOException {
+        Resource firstResource = MemoryResource.create("text1");
+        Resource secondResource = MemoryResource.create("text2");
+        assertTrue(ResourceUtils.hasSameContent(null, null));
+        assertFalse(ResourceUtils.hasSameContent(firstResource, null));
+        assertFalse(ResourceUtils.hasSameContent(null, secondResource));
+        assertFalse(ResourceUtils.hasSameContent(firstResource, secondResource));
+        secondResource = MemoryResource.create("text1");
+        assertTrue(ResourceUtils.hasSameContent(firstResource, secondResource));
+    }
+
+    @Test
     void throwUnsupported() {
 
     }
