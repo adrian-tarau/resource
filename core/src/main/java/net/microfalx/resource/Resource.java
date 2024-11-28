@@ -69,6 +69,24 @@ public interface Resource extends Serializable {
     }
 
     /**
+     * Returns the memory resource based on some context.
+     *
+     * @return a non-null instance
+     */
+    static Resource text(String content) {
+        return MemoryResource.create(content);
+    }
+
+    /**
+     * Returns the memory resource based on some bytes.
+     *
+     * @return a non-null instance
+     */
+    static Resource bytes(byte[] content) {
+        return MemoryResource.create(content);
+    }
+
+    /**
      * Returns the credential used to access the resource.
      *
      * @return a non-null instance
