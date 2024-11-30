@@ -26,6 +26,11 @@ public interface Resource extends Serializable {
     String HASH_ATTR = "hash";
 
     /**
+     * An attribute which carries a different file name.
+     */
+    String FILE_NAME_ATTR = "file_name";
+
+    /**
      * A resource which does not exist.
      * <p>
      * The resource is a valid reference, but it has no content and any modification is ignored.
