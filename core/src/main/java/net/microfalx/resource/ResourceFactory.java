@@ -318,7 +318,7 @@ public class ResourceFactory {
             ResourceFactory.resolvers.add(resolver);
         }
         AnnotationUtils.sort(ResourceFactory.resolvers);
-        LOGGER.info("Initialized " + ResourceFactory.resolvers.size() + " resource resolvers");
+        LOGGER.debug("Initialized {} resource resolvers", ResourceFactory.resolvers.size());
 
         LOGGER.debug("Initialize resource processors");
         ServiceLoader<ResourceProcessor> processors = ServiceLoader.load(ResourceProcessor.class);
@@ -327,7 +327,7 @@ public class ResourceFactory {
             ResourceFactory.processors.add(processor);
         }
         AnnotationUtils.sort(ResourceFactory.processors);
-        LOGGER.info("Initialized " + ResourceFactory.processors.size() + " resource processors");
+        LOGGER.debug("Initialized {} resource processors", ResourceFactory.processors.size());
 
         LOGGER.debug("Initialize mime type resolvers");
         ServiceLoader<MimeTypeResolver> mimeTypeResolvers = ServiceLoader.load(MimeTypeResolver.class);
@@ -336,7 +336,7 @@ public class ResourceFactory {
             ResourceFactory.mimeTypeResolvers.add(mimeTypeResolver);
         }
         AnnotationUtils.sort(ResourceFactory.mimeTypeResolvers);
-        LOGGER.info("Initialized " + ResourceFactory.mimeTypeResolvers.size() + " mime type resolvers");
+        LOGGER.debug("Initialized {} mime type resolvers", ResourceFactory.mimeTypeResolvers.size());
 
         File shared = new File(JvmUtils.getHomeDirectory(), ".shared");
         setShared(FileResource.directory(shared));
