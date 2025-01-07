@@ -25,7 +25,7 @@
 
     <groupId>net.microfalx.resource</groupId>
     <artifactId>resource</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.8.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -67,8 +67,8 @@
 
     <properties>
         <bom.version>1.0.3</bom.version>
-        <lang.version>1.0.0-SNAPSHOT</lang.version>
-        <meters.version>1.0.0-SNAPSHOT</meters.version>
+        <lang.version>0.8.0-SNAPSHOT</lang.version>
+        <metrics.version>0.8.0-SNAPSHOT</metrics.version>
 
         <jacoco.file>jacoco.exec</jacoco.file>
         <jacoco.ut.dest>${project.build.directory}/${jacoco.file}</jacoco.ut.dest>
@@ -94,15 +94,15 @@
             </dependency>
 
             <dependency>
-                <groupId>net.microfalx.lang</groupId>
+                <groupId>net.microfalx</groupId>
                 <artifactId>lang</artifactId>
                 <version>${lang.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>net.microfalx.metrics</groupId>
+                <groupId>net.microfalx</groupId>
                 <artifactId>metrics</artifactId>
-                <version>${meters.version}</version>
+                <version>${metrics.version}</version>
             </dependency>
 
         </dependencies>
@@ -118,12 +118,12 @@
         </dependency>
 
         <dependency>
-            <groupId>net.microfalx.metrics</groupId>
+            <groupId>net.microfalx</groupId>
             <artifactId>metrics</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>net.microfalx.lang</groupId>
+            <groupId>net.microfalx</groupId>
             <artifactId>lang</artifactId>
         </dependency>
 

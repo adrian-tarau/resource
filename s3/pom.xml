@@ -25,12 +25,12 @@
 
     <groupId>net.microfalx.resource</groupId>
     <artifactId>resource-s3</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.8.0-SNAPSHOT</version>
 
     <parent>
         <groupId>net.microfalx.resource</groupId>
         <artifactId>resource</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.8.0-SNAPSHOT</version>
     </parent>
 
     <name>Resource :: S3</name>
