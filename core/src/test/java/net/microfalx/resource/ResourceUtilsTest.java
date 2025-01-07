@@ -66,10 +66,8 @@ class ResourceUtilsTest {
 
     @Test
     void createName() {
-        String text = """
-                I am writing java code today.
-                The code is suppose to see if everything works properly.
-                """;
+        String text = "I am writing java code today.\n" +
+                      "The code is suppose to see if everything works properly.\n";
         assertEquals(StringUtils.NA_STRING, ResourceUtils.createName(""));
         assertEquals("I am writing java code today....f everything works properly.",
                 ResourceUtils.createName(text));

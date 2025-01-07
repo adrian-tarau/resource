@@ -244,7 +244,8 @@ public abstract class AbstractResource implements Resource, Cloneable {
         requireNonNull(resource);
         return time("Copy Properties", () -> {
             this.mimeType = resource.getMimeType();
-            if (resource instanceof AbstractResource otherResource) {
+            if (resource instanceof AbstractResource) {
+                AbstractResource otherResource = (AbstractResource) resource;
                 this.name = otherResource.name;
                 this.description = otherResource.description;
                 if (otherResource.attributes != null) {
@@ -613,7 +614,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
      * Subclasses can change the way how the hash is calculated.
      *
      * @param hashing the hashing class
-     * @param useUri {@code true} to use URI to calculate hash, @{code false otherwise}
+     * @param useUri  {@code true} to use URI to calculate hash, @{code false otherwise}
      */
     protected void updateHash(Hashing hashing, boolean useUri) {
         URI uri = toURI();
@@ -759,11 +760,11 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "type=" + getType() +
-                ", URI='" + toURI() + '\'' +
-                ", name='" + getName() + '\'' +
-                ", credential=" + getCredential() +
-                '}';
+               "type=" + getType() +
+               ", URI='" + toURI() + '\'' +
+               ", name='" + getName() + '\'' +
+               ", credential=" + getCredential() +
+               '}';
     }
 
     static {
