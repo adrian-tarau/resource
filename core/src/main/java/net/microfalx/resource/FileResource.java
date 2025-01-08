@@ -27,7 +27,6 @@ import static net.microfalx.resource.ResourceUtils.hash;
  */
 public class FileResource extends AbstractResource {
 
-    @Serial
     private static final long serialVersionUID = 8384627536253212324L;
 
     private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("File");
