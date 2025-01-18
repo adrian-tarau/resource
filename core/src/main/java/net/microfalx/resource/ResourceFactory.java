@@ -19,6 +19,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.util.Collections.unmodifiableCollection;
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.ArgumentUtils.requireNotEmpty;
 import static net.microfalx.lang.StringUtils.removeEndSlash;
 import static net.microfalx.lang.StringUtils.removeStartSlash;
 import static net.microfalx.resource.ResourceUtils.toUri;
@@ -136,10 +137,21 @@ public class ResourceFactory {
      * Returns the resource used for the process temporary resources.
      *
      * @return the resource, null if not set
-     * @see SharedResource
      */
     public static Resource getTemporary() {
         return temporary;
+    }
+
+    /**
+     * Returns the file resource.
+     *
+     * @return a non-null instance
+     */
+    public static Resource getTemporary(String prefix, String suffix) {
+        requireNotEmpty(prefix);
+        String fileName = prefix + Long.toString(System.nanoTime(), Character.MAX_RADIX);
+        if (suffix != null) fileName += suffix;
+        return temporary.resolve(fileName, Resource.Type.FILE);
     }
 
     /**

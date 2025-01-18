@@ -1,5 +1,7 @@
 package net.microfalx.resource;
 
+import net.microfalx.lang.StringUtils;
+
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
@@ -53,6 +55,24 @@ public interface Resource extends Serializable {
      */
     static Resource temporary() {
         return ResourceFactory.getTemporary();
+    }
+
+    /**
+     * Returns the file resource.
+     *
+     * @return a non-null instance
+     */
+    static Resource temporary(String prefix, String suffix) {
+        return ResourceFactory.getTemporary(prefix, suffix);
+    }
+
+    /**
+     * Returns the memory resource based on some context.
+     *
+     * @return a non-null instance
+     */
+    static Resource memory() {
+        return MemoryResource.create(StringUtils.EMPTY_STRING);
     }
 
     /**
