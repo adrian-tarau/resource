@@ -98,7 +98,7 @@ public class ResourceFactory {
         if (shared.getType() == Resource.Type.FILE) {
             throw new IllegalArgumentException("Only a directory can be used for shared resources, received '" + shared.toURI() + "'");
         }
-        if (ResourceFactory.workspace != null) {
+        if (ResourceFactory.shared != null && !ResourceFactory.shared.equals(shared)) {
             LOGGER.info("Change shared resources from '{}' to '{}'", ResourceFactory.shared.toURI(), shared.toURI());
         }
         ResourceFactory.shared = shared;
@@ -127,7 +127,7 @@ public class ResourceFactory {
         if (!workspace.isLocal()) {
             throw new IllegalArgumentException("The temporary directory need to be a local resource");
         }
-        if (ResourceFactory.workspace != null) {
+        if (ResourceFactory.workspace != null && !ResourceFactory.workspace.equals(workspace)) {
             LOGGER.info("Change workspace resources from '{}' to '{}'", ResourceFactory.workspace.toURI(), workspace.toURI());
         }
         ResourceFactory.workspace = workspace;
@@ -167,7 +167,7 @@ public class ResourceFactory {
         if (!temporary.isLocal()) {
             throw new IllegalArgumentException("The temporary directory need to be a local resource");
         }
-        if (ResourceFactory.temporary != null) {
+        if (ResourceFactory.temporary != null && !ResourceFactory.temporary.equals(temporary)) {
             LOGGER.info("Change temporary resources from '{}' to '{}'", ResourceFactory.temporary.toURI(), temporary.toURI());
         }
         ResourceFactory.temporary = temporary;
