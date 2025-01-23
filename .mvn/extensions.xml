@@ -1,7 +1,7 @@
 <extensions>
-    <!--extension>
+    <extension>
         <groupId>net.microfalx.maven</groupId>
         <artifactId>maven-extension</artifactId>
-        <version>0.8.1-SNAPSHOT</version>
-    </extension-->
+        <version>0.8.1</version>
+    </extension>
 </extensions>
