@@ -34,6 +34,7 @@
     </parent>
 
     <name>Resource :: BOM</name>
+    <description>Bill of Materials for resources</description>
 
     <dependencyManagement>
         <dependencies>

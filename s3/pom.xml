@@ -34,6 +34,7 @@
     </parent>
 
     <name>Resource :: S3</name>
+    <description>Resource implementation using Amazon S3</description>
 
     <dependencies>
 

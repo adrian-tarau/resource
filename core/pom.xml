@@ -34,6 +34,7 @@
     </parent>
 
     <name>Resource :: Core</name>
+    <description>Resource API and core implementations</description>
 
     <dependencies>
     </dependencies>

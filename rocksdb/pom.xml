@@ -34,6 +34,7 @@
     </parent>
 
     <name>Resource :: RocksDB</name>
+    <description>Resource implementation backed by RocksDB</description>
 
     <dependencies>
 

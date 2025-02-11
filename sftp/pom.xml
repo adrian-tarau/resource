@@ -34,6 +34,7 @@
     </parent>
 
     <name>Resource :: SFTP</name>
+    <description>Resource implementation using SFTP protocol</description>
 
     <dependencies>
 
