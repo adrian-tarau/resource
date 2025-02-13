@@ -660,7 +660,17 @@ public abstract class AbstractResource implements Resource, Cloneable {
         if (resource.isFile()) {
             IOUtils.appendStream(getOutputStream(), resource.getInputStream(true));
         } else {
-            throw new ResourceException("Directory copy not supported");
+            resource.walk((root, child) -> {
+                String path = removeStartSlash(child.getPath(root));
+                if (child.isDirectory()) {
+                    Resource targetDirectory = AbstractResource.this.resolve(path, Type.DIRECTORY);
+                    targetDirectory.create();
+                } else {
+                    Resource targetFile = AbstractResource.this.resolve(path, Resource.Type.FILE);
+                    targetFile.copyFrom(child);
+                }
+                return true;
+            }, depth);
         }
         return this;
     }

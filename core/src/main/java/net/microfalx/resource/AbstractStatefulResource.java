@@ -10,7 +10,7 @@ import static net.microfalx.lang.ArgumentUtils.requireNonNull;
  */
 public abstract class AbstractStatefulResource<S, C> extends AbstractResource implements StatefulResource {
 
-    private static Logger LOGGER = Logger.getLogger(AbstractStatefulResource.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AbstractStatefulResource.class.getName());
 
     private volatile S session;
 
@@ -28,7 +28,7 @@ public abstract class AbstractStatefulResource<S, C> extends AbstractResource im
      * <p>
      * The session remains open until {@link  #close()} is called.
      *
-     * @return the caches session
+     * @return the cached session
      * @throws IOException if an I/O exception occurs
      */
     protected synchronized S createSession() throws IOException {
@@ -70,7 +70,7 @@ public abstract class AbstractStatefulResource<S, C> extends AbstractResource im
     protected abstract S doCreateSession() throws Exception;
 
     /**
-     * Sunclasses will actually release a session instance.
+     * Subclasses will actually release a session instance.
      *
      * @param session the session
      * @throws Exception if an error occurs
@@ -80,10 +80,10 @@ public abstract class AbstractStatefulResource<S, C> extends AbstractResource im
     /**
      * Validates whether the session is still valid and can be used.
      * <p>
-     * Any exception is handled by closing the session session and open a new one
+     * Any exception is handled by closing the session and open a new one
      *
      * @param session the session
-     * @return {@code true} if valid, {@code false} othersie
+     * @return {@code true} if valid, {@code false} otherwise
      * @throws Exception if an error occurs
      */
     protected abstract boolean isValid(S session) throws Exception;
@@ -132,7 +132,7 @@ public abstract class AbstractStatefulResource<S, C> extends AbstractResource im
      *
      * @param session the session
      * @param channel the channel
-     * @throws Exception if an  error occurs
+     * @throws Exception if an error occurs
      */
     protected abstract void doReleaseChannel(S session, C channel) throws Exception;
 

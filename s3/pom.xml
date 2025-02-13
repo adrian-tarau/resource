@@ -45,10 +45,10 @@
             <artifactId>resource-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
         </dependency>
 
         <!-- Tests -->
