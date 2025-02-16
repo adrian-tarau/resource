@@ -25,12 +25,12 @@
 
     <groupId>net.microfalx.resource</groupId>
     <artifactId>resource-rocksdb</artifactId>
-    <version>0.8.2-SNAPSHOT</version>
+    <version>0.8.2</version>
 
     <parent>
         <groupId>net.microfalx.resource</groupId>
         <artifactId>resource</artifactId>
-        <version>0.8.2-SNAPSHOT</version>
+        <version>0.8.2</version>
     </parent>
 
     <name>Resource :: RocksDB</name>
