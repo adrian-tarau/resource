@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -56,5 +57,18 @@ class TemporaryFileResourceTest {
         assertFalse(resource.exists());
         assertFalse(resource.isDirectory());
         Assertions.assertThat(resource.getPath()).contains("test");
+    }
+
+    @Test
+    void copyFrom() throws IOException{
+        Resource resource = TemporaryFileResource.create(Resource.Type.DIRECTORY, "copyFrom");
+        resource.delete();
+        resource.copyFrom(ClassPathResource.directory("dir3"));
+        AtomicInteger fileCount = new AtomicInteger();
+        resource.walk((root, child) -> {
+            if (child.isFile()) fileCount.incrementAndGet();
+           return true;
+        });
+        assertEquals(4, fileCount.get());
     }
 }

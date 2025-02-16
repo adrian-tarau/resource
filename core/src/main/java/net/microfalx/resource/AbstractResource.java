@@ -240,7 +240,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     }
 
     @Override
-    public Resource copyPropertiesFrom(Resource resource) {
+    public final Resource copyPropertiesFrom(Resource resource) {
         requireNonNull(resource);
         return time("Copy Properties", () -> {
             this.mimeType = resource.getMimeType();
@@ -253,6 +253,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
                     this.attributes.putAll(otherResource.attributes);
                 }
             }
+            doCopyPropertiesFrom(resource);
             return this;
         });
     }
@@ -673,6 +674,10 @@ public abstract class AbstractResource implements Resource, Cloneable {
             }, depth);
         }
         return this;
+    }
+
+    protected void doCopyPropertiesFrom(Resource resource) throws IOException {
+        // empty on purpose
     }
 
     /**

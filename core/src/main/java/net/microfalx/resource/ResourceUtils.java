@@ -241,7 +241,7 @@ public class ResourceUtils {
      *
      * @param firstResource  the first resource
      * @param secondResource the second resource
-     * @return {@code true} if resources are the same
+     * @return {@code true} if resources are the same, {@code false} otherwise
      * @throws IOException if the resource content cannot be processed
      */
     public static boolean hasSameContent(Resource firstResource, Resource secondResource) throws IOException {
@@ -250,6 +250,25 @@ public class ResourceUtils {
         String firstHash = Hashing.create().update(firstResource.getInputStream()).asString();
         String secondHash = Hashing.create().update(secondResource.getInputStream()).asString();
         return firstHash.equals(secondHash);
+    }
+
+    /**
+     * Compares whether two resources have the same attributes: they exist, have the same length and optionally the same
+     * last modified
+     *
+     * @param firstResource       the first resource
+     * @param secondResource      the second resource
+     * @param includeLastModified {@code true} to include last modified in comparison, {@code false} otherwise
+     * @return {@code true} if resources have the same attributes, {@code false} otherwise
+     * @throws IOException if an I/O error occurs
+     */
+    public static boolean hasSameAttributes(Resource firstResource, Resource secondResource, boolean includeLastModified) throws IOException {
+        if (firstResource == null && secondResource == null) return true;
+        if (firstResource == null || secondResource == null) return false;
+        if (firstResource.exists() && secondResource.exists()) return true;
+        if (firstResource.length() == secondResource.length()) return true;
+        return includeLastModified && firstResource.lastModified() == secondResource.lastModified();
+
     }
 
     /**

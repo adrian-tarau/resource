@@ -33,6 +33,11 @@ public interface Resource extends Serializable {
     String FILE_NAME_ATTR = "file_name";
 
     /**
+     * An attribute which carries the address of a remote service used by resource.
+     */
+    String END_POINT_ATTR = "endpoint";
+
+    /**
      * A resource which does not exist.
      * <p>
      * The resource is a valid reference, but it has no content and any modification is ignored.

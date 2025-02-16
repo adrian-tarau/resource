@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
+import static java.nio.file.attribute.FileTime.fromMillis;
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.ExceptionUtils.throwException;
 import static net.microfalx.lang.IOUtils.*;
@@ -178,21 +179,23 @@ public class FileResource extends AbstractResource {
 
     @Override
     protected boolean doWalk(ResourceVisitor visitor, int maxDepth) throws IOException {
+        if (!file.exists()) return true;
         Path rootPath = file.toPath();
-        Stream<Path> walk = Files.walk(rootPath, maxDepth, FileVisitOption.FOLLOW_LINKS);
         AtomicBoolean shouldContinue = new AtomicBoolean(true);
-        walk.forEach(path -> {
-            boolean same = path.equals(rootPath);
-            if (!same && shouldContinue.get()) {
-                File child = path.toFile();
-                try {
-                    shouldContinue.set(visitor.onResource(this, child.isFile() ? FileResource.file(child) : FileResource.directory(child)));
-                } catch (IOException e) {
-                    throwException(e);
+        try (Stream<Path> walk = Files.walk(rootPath, maxDepth, FileVisitOption.FOLLOW_LINKS)) {
+            walk.forEach(path -> {
+                boolean same = path.equals(rootPath);
+                if (!same && shouldContinue.get()) {
+                    File child = path.toFile();
+                    try {
+                        shouldContinue.set(visitor.onResource(this, child.isFile() ? FileResource.file(child) : FileResource.directory(child)));
+                    } catch (IOException e) {
+                        throwException(e);
+                    }
                 }
-            }
-        });
-        return shouldContinue.get();
+            });
+            return shouldContinue.get();
+        }
     }
 
     @Override
@@ -227,6 +230,11 @@ public class FileResource extends AbstractResource {
             resources.add(FileResource.create(child));
         }
         return resources;
+    }
+
+    @Override
+    protected void doCopyPropertiesFrom(Resource resource) throws IOException {
+        Files.setLastModifiedTime(file.toPath(), fromMillis(resource.lastModified()));
     }
 
     @Override
