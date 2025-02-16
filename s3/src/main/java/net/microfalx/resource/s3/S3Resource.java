@@ -36,7 +36,6 @@ import static net.microfalx.resource.s3.S3Utilities.S3_SECURE_SCHEME2;
 public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClient> {
 
     private static final Metrics METRICS = ResourceUtils.METRICS.withGroup("S3");
-    public static final String END_POINT_ATTR = "endpoint";
 
     private static volatile URL defaultEndpoint = UriUtils.parseUrl("https://s3.amazonaws.com");
 
@@ -181,6 +180,7 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
     @Override
     public boolean doExists() throws IOException {
         checkBucket();
+        if (isEmpty(getObjectPath())) return bucketExists;
         StatObjectResponse currentStats = getStats();
         return currentStats != null && currentStats.lastModified() != null;
     }
@@ -244,7 +244,7 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
     @Override
     protected Collection<Resource> doList() throws IOException {
         return doWithChannel("list", channel -> {
-            ListObjectsArgs args = ListObjectsArgs.builder().bucket(getBucketName()).prefix(getObjectPath()).build();
+            ListObjectsArgs args = ListObjectsArgs.builder().bucket(getBucketName()).prefix(addEndSlash(getObjectPath())).build();
             Iterable<Result<Item>> results = channel.listObjects(args);
             return CollectionUtils.toList(new ItemIterator(this, results.iterator()));
         });
@@ -253,7 +253,7 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
     @Override
     protected boolean doWalk(ResourceVisitor visitor, int maxDepth) throws IOException {
         return doWithChannel("walk", channel -> {
-            ListObjectsArgs args = ListObjectsArgs.builder().bucket(getBucketName()).prefix(getObjectPath())
+            ListObjectsArgs args = ListObjectsArgs.builder().bucket(getBucketName()).prefix(addEndSlash(getObjectPath()))
                     .delimiter(SLASH).recursive(true).build();
             Iterable<Result<Item>> results = channel.listObjects(args);
             ItemIterator iterator = new ItemIterator(this, results.iterator());
@@ -357,7 +357,10 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
      * @return a new instance
      */
     private Resource createFromUri(String uri, Type type) {
-        return S3Resource.create(type, URI.create(uri), getCredential());
+        S3Resource resource = (S3Resource) S3Resource.create(type, URI.create(uri), getCredential());
+        resource.bucketExists = bucketExists;
+        resource.endpoint = endpoint;
+        return resource;
     }
 
     private void uploadFile(File file) throws IOException {
@@ -500,7 +503,7 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
                 } catch (NullPointerException e) {
                     // why is this field empty sometime?
                 }
-                String name = removeStartSlash(item.objectName());
+                String name = FileUtils.getFileName(removeStartSlash(item.objectName()));
                 if (item.isDir()) {
                     object = parent.resolve(name, Type.DIRECTORY);
                     ((S3Resource) object).update(lastModified, null, etag, owner);
