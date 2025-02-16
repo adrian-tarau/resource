@@ -25,12 +25,12 @@
 
     <groupId>net.microfalx.resource</groupId>
     <artifactId>resource-sftp</artifactId>
-    <version>0.8.2</version>
+    <version>0.8.3-SNAPSHOT</version>
 
     <parent>
         <groupId>net.microfalx.resource</groupId>
         <artifactId>resource</artifactId>
-        <version>0.8.2</version>
+        <version>0.8.3-SNAPSHOT</version>
     </parent>
 
     <name>Resource :: SFTP</name>
