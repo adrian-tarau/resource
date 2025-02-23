@@ -182,9 +182,13 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
     @Override
     public boolean doExists() throws IOException {
         checkBucket();
-        if (isEmpty(getObjectPath())) return bucketExists;
-        StatObjectResponse currentStats = getStats();
-        return currentStats != null && currentStats.lastModified() != null;
+        if (isFile()) {
+            if (isEmpty(getObjectPath())) return bucketExists;
+            StatObjectResponse currentStats = getStats();
+            return currentStats != null && currentStats.lastModified() != null;
+        } else {
+            return bucketExists;
+        }
     }
 
     @Override
