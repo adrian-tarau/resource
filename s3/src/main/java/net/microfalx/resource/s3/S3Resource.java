@@ -50,6 +50,8 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
     private volatile String etag;
     private volatile String owner;
 
+    private static final ThreadLocal<Boolean> UPLOADING = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
     /**
      * Creates a resource with a file type.
      *
@@ -200,6 +202,16 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
     }
 
     @Override
+    protected String doGetMimeType() throws IOException {
+        if (UPLOADING.get()) {
+            return super.doGetMimeType();
+        } else {
+            StatObjectResponse currentStats = getStats();
+            return MimeType.get(currentStats.contentType()).getValue();
+        }
+    }
+
+    @Override
     protected void doCreate() throws IOException {
         // does not apply to S3
     }
@@ -228,7 +240,7 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
 
     @Override
     protected InputStream doGetInputStream(boolean raw) throws IOException {
-        return doWithChannel("input stream", channel -> {
+        return doWithChannel("download", channel -> {
             GetObjectArgs args = GetObjectArgs.builder().bucket(getBucketName()).object(getObjectPath()).build();
             return channel.getObject(args);
         });
@@ -244,7 +256,8 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
     @Override
     protected Collection<Resource> doList() throws IOException {
         return doWithChannel("list", channel -> {
-            ListObjectsArgs args = ListObjectsArgs.builder().bucket(getBucketName()).prefix(addEndSlash(getObjectPath())).build();
+            ListObjectsArgs args = ListObjectsArgs.builder().bucket(getBucketName()).prefix(getPrefix())
+                    .delimiter(SLASH).build();
             Iterable<Result<Item>> results = channel.listObjects(args);
             return CollectionUtils.toList(new ItemIterator(this, results.iterator()));
         });
@@ -253,7 +266,7 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
     @Override
     protected boolean doWalk(ResourceVisitor visitor, int maxDepth) throws IOException {
         return doWithChannel("walk", channel -> {
-            ListObjectsArgs args = ListObjectsArgs.builder().bucket(getBucketName()).prefix(addEndSlash(getObjectPath()))
+            ListObjectsArgs args = ListObjectsArgs.builder().bucket(getBucketName()).prefix(getPrefix())
                     .delimiter(SLASH).recursive(true).build();
             Iterable<Result<Item>> results = channel.listObjects(args);
             ItemIterator iterator = new ItemIterator(this, results.iterator());
@@ -364,9 +377,15 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
     }
 
     private void uploadFile(File file) throws IOException {
-        doWithChannel("output stream", channel -> {
-            channel.uploadObject(UploadObjectArgs.builder()
-                    .bucket(getBucketName()).object(getObjectPath()).filename(file.getAbsolutePath()).build());
+        doWithChannel("upload", channel -> {
+            UPLOADING.set(true);
+            try {
+                UploadObjectArgs.Builder builder = UploadObjectArgs.builder().bucket(getBucketName()).object(getObjectPath())
+                        .filename(file.getAbsolutePath()).contentType(getMimeType());
+                channel.uploadObject(builder.build());
+            } finally {
+                UPLOADING.remove();
+            }
             return null;
         });
         clearCache();
@@ -394,7 +413,7 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
 
     private StatObjectResponse getStats() throws IOException {
         if (stats == null || areStatsStale()) {
-            stats = doWithChannel("exists", channel -> {
+            stats = doWithChannel("stats", channel -> {
                 try {
                     StatObjectArgs args = StatObjectArgs.builder().bucket(getBucketName()).object(getObjectPath()).build();
                     return channel.statObject(args);
@@ -403,6 +422,9 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
                     throw new S3Exception(getErrorMessage("Failed to retrieve object stats from ''{0}'' for ''{1}''"), e);
                 }
             });
+            if (stats != null && isNotEmpty(stats.contentType())) {
+                setContentType(stats.contentType());
+            }
             lastStatsUpdate = System.currentTimeMillis();
         }
         return stats;
@@ -452,6 +474,11 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
         } else {
             throw new IllegalArgumentException("Unknown endpoint type: " + ClassUtils.getName(value));
         }
+    }
+
+    private String getPrefix() {
+        String objectPath = getObjectPath();
+        return StringUtils.isNotEmpty(objectPath) ? addEndSlash(objectPath) : EMPTY_STRING;
     }
 
     private void clearCache() {

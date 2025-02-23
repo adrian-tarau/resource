@@ -444,13 +444,42 @@ public abstract class AbstractResource implements Resource, Cloneable {
         return mimeType;
     }
 
+    /**
+     * Changes the mime type.
+     *
+     * @param mimeType the mime type, NULL to reset to auto-detection
+     */
+    protected final void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+        if (APPLICATION_OCTET_STREAM.getValue().equalsIgnoreCase(mimeType)) {
+            this.mimeType = null;
+        }
+    }
+
+    /**
+     * Changes the mime type.
+     *
+     * @param contentType the mime type, NULL to reset to auto-detection
+     */
+    protected final void setContentType(String contentType) {
+        setMimeType(MimeType.get(contentType).getValue());
+    }
+
     @Override
-    public String detectMimeType() {
+    public final String detectMimeType() {
         String mimeType = null;
+        try {
+            mimeType = doGetMimeType();
+            if (!MimeType.get(mimeType).isBinary()) return mimeType;
+        } catch (IOException e) {
+            // ignore
+        }
         InputStream inputStream = null;
         try {
-            inputStream = doGetInputStream(false);
-            mimeType = ResourceFactory.detect(inputStream, getFileName());
+            if (exists()) {
+                inputStream = doGetInputStream(false);
+                mimeType = ResourceFactory.detect(inputStream, getFileName());
+            }
         } catch (IOException e) {
             // if it cannot resolve the stream, try to file name
         } finally {
@@ -678,6 +707,15 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     protected void doCopyPropertiesFrom(Resource resource) throws IOException {
         // empty on purpose
+    }
+
+    /**
+     * Subclasses can provide their own mime type.
+     *
+     * @return the mime type, null for auto-detection
+     */
+    protected String doGetMimeType() throws IOException {
+        return null;
     }
 
     /**

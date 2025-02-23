@@ -51,6 +51,16 @@ class S3ResourceTest {
     }
 
     @Test
+    void createFileWithMimeType() throws IOException {
+        S3Resource file = upload("file1.html", ClassPathResource.file("s3/file1.html"));
+        assertEquals("file1.html", file.getFileName());
+        assertEquals("text/html", file.getMimeType());
+        assertEquals(71, file.length());
+        org.assertj.core.api.Assertions.assertThat(file.loadAsString().contains("<html>"));
+        file.close();
+    }
+
+    @Test
     void listDirectory() throws IOException {
         uploadDirectory(EMPTY_STRING);
         StatefulResource directory = S3Resource.directory(create(""), credential);
@@ -63,7 +73,7 @@ class S3ResourceTest {
                 directoryCount.incrementAndGet();
             }
         }
-        assertEquals(1, fileCount.get());
+        assertEquals(2, fileCount.get());
         assertEquals(2, directoryCount.get());
         directory.close();
     }
@@ -82,7 +92,7 @@ class S3ResourceTest {
             }
             return true;
         });
-        assertEquals(5, fileCount.get());
+        assertEquals(6, fileCount.get());
         assertEquals(0, directoryCount.get());
         directory.close();
     }
@@ -110,7 +120,6 @@ class S3ResourceTest {
         assertFalse(file.exists());
         file.copyFrom(source);
         assertTrue(file.exists());
-        assertEquals(4, file.length());
         return file;
     }
 

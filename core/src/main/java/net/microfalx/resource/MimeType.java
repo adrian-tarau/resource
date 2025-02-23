@@ -101,6 +101,15 @@ public enum MimeType {
         return text;
     }
 
+    /**
+     * Returns whether the mime type indicates binary data.
+     *
+     * @return {@code true} if binary, {@code false} otherwise
+     */
+    public boolean isBinary() {
+        return APPLICATION_OCTET_STREAM.equals(value);
+    }
+
     @Override
     public String toString() {
         return value;
