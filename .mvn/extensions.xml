@@ -1,7 +1,7 @@
 <extensions>
     <extension>
-        <groupId>net.microfalx.maven</groupId>
-        <artifactId>maven-extension</artifactId>
-        <version>0.8.3-SNAPSHOT</version>
+        <groupId>net.microfalx.talos</groupId>
+        <artifactId>talos-maven-extension</artifactId>
+        <version>0.8.4</version>
     </extension>
 </extensions>
