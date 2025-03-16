@@ -25,12 +25,12 @@
 
     <groupId>net.microfalx.resource</groupId>
     <artifactId>resource-bom</artifactId>
-    <version>0.8.3-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <parent>
         <groupId>net.microfalx.resource</groupId>
         <artifactId>resource</artifactId>
-        <version>0.8.3-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
 
     <name>Resource :: BOM</name>
