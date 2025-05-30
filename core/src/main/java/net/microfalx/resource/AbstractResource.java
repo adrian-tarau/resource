@@ -441,7 +441,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
     @Override
     public final String getMimeType() {
         if (mimeType == null) mimeType = detectMimeType();
-        return mimeType;
+        return StringUtils.defaultIfEmpty(mimeType, APPLICATION_OCTET_STREAM.getValue());
     }
 
     /**
@@ -470,7 +470,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
         String mimeType = null;
         try {
             mimeType = doGetMimeType();
-            if (!MimeType.get(mimeType).isBinary()) return mimeType;
+            if (!MimeType.get(mimeType).isBinary() && isNotEmpty(mimeType)) return mimeType;
         } catch (IOException e) {
             // ignore
         }
@@ -485,8 +485,10 @@ public abstract class AbstractResource implements Resource, Cloneable {
         } finally {
             IOUtils.closeQuietly(inputStream);
         }
-        if (mimeType == null && isNotEmpty(getFileExtension())) return guessContentTypeFromName(getFileName());
-        if (StringUtils.isEmpty(mimeType)) mimeType = APPLICATION_OCTET_STREAM.getValue();
+        if (isEmpty(mimeType) && isNotEmpty(getFileExtension())) {
+            mimeType = guessContentTypeFromName(getFileName());
+        }
+        if (isEmpty(mimeType)) mimeType = APPLICATION_OCTET_STREAM.getValue();
         return mimeType;
     }
 
@@ -541,7 +543,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
 
     @Override
     public final Resource withFragment(String fragment) {
-        if (StringUtils.isEmpty(fragment)) {
+        if (isEmpty(fragment)) {
             return this;
         } else {
             AbstractResource copy = copy();
