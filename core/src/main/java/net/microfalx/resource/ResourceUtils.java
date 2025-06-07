@@ -95,6 +95,23 @@ public class ResourceUtils {
     }
 
     /**
+     * Loads this resource as a string.
+     * <p>
+     * The method throws an exception if the resource cannot be loaded.
+     *
+     * @param resource the resource to load
+     * @return a non-null string
+     */
+    public static String loadAsString(Resource resource) {
+        requireNonNull(resource);
+        try {
+            return resource.loadAsString();
+        } catch (IOException e) {
+            return ExceptionUtils.throwException(e);
+        }
+    }
+
+    /**
      * Returns a file which ends with {@link File#separator}to make it look like a directory.
      *
      * @param file the file

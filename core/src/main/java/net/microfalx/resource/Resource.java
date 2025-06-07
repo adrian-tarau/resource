@@ -5,6 +5,7 @@ import net.microfalx.lang.StringUtils;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Map;
 
@@ -65,6 +66,8 @@ public interface Resource extends Serializable {
     /**
      * Returns the file resource.
      *
+     * @param prefix the prefix of the file name
+     * @param suffix the suffix of the file name
      * @return a non-null instance
      */
     static Resource temporary(String prefix, String suffix) {
@@ -83,6 +86,7 @@ public interface Resource extends Serializable {
     /**
      * Returns the file resource based on a local file.
      *
+     * @param file the file representing a resource
      * @return a non-null instance
      */
     static Resource file(File file) {
@@ -92,6 +96,7 @@ public interface Resource extends Serializable {
     /**
      * Returns the directory resource based on a local file.
      *
+     * @param file the file representing a directory
      * @return a non-null instance
      */
     static Resource directory(File file) {
@@ -101,6 +106,7 @@ public interface Resource extends Serializable {
     /**
      * Returns the memory resource based on some context.
      *
+     * @param content the content as a string
      * @return a non-null instance
      */
     static Resource text(String content) {
@@ -108,12 +114,37 @@ public interface Resource extends Serializable {
     }
 
     /**
+     * Returns the memory resource based on some base64 encoded content.
+     * <p>
+     * The content is decoded and then converted to a string.
+     *
+     * @param content the content as a base64 encoded string
+     * @return a non-null instance
+     */
+    static Resource base64Encoded(String content) {
+        if (content == null) return memory();
+        byte[] decode = Base64.getDecoder().decode(content);
+        return text(new String(decode));
+    }
+
+    /**
      * Returns the memory resource based on some bytes.
      *
+     * @param content the content as a byte array
      * @return a non-null instance
      */
     static Resource bytes(byte[] content) {
         return MemoryResource.create(content);
+    }
+
+    /**
+     * Returns the URL resource.
+     *
+     * @param url the URL to the resource
+     * @return a non-null instance
+     */
+    static Resource url(URL url) {
+        return UrlResource.create(url);
     }
 
     /**

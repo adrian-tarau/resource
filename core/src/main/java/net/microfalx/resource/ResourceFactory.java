@@ -145,6 +145,8 @@ public class ResourceFactory {
     /**
      * Returns the file resource.
      *
+     * @param prefix the prefix of the file name
+     * @param suffix the suffix of the file name
      * @return a non-null instance
      */
     public static Resource getTemporary(String prefix, String suffix) {
