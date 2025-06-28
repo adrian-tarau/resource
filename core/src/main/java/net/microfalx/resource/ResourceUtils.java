@@ -285,7 +285,21 @@ public class ResourceUtils {
         if (firstResource.exists() && secondResource.exists()) return true;
         if (firstResource.length() == secondResource.length()) return true;
         return includeLastModified && firstResource.lastModified() == secondResource.lastModified();
+    }
 
+    /**
+     * Deletes the resource
+     *
+     * @param resource the resource to delete
+     * @return {@code true} if the resource was deleted, {@code false} otherwise
+     */
+    public static boolean delete(Resource resource) {
+        try {
+            resource.delete();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     /**
