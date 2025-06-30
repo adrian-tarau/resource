@@ -1,6 +1,5 @@
 package net.microfalx.resource;
 
-import net.microfalx.lang.ExceptionUtils;
 import net.microfalx.lang.Hashing;
 import net.microfalx.lang.StringUtils;
 import net.microfalx.metrics.Metrics;
@@ -17,6 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.ExceptionUtils.rethrowExceptionAndReturn;
 import static net.microfalx.lang.StringUtils.isEmpty;
 import static net.microfalx.lang.StringUtils.split;
 import static net.microfalx.lang.ThreadUtils.sleepMillis;
@@ -107,7 +107,7 @@ public class ResourceUtils {
         try {
             return resource.loadAsString();
         } catch (IOException e) {
-            return ExceptionUtils.throwException(e);
+            return rethrowExceptionAndReturn(e);
         }
     }
 
@@ -149,7 +149,7 @@ public class ResourceUtils {
         try {
             return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), path, uri.getQuery(), uri.getFragment());
         } catch (URISyntaxException e) {
-            return ExceptionUtils.throwException(e);
+            return rethrowExceptionAndReturn(e);
         }
     }
 
@@ -454,7 +454,7 @@ public class ResourceUtils {
             }
             sleepMillis(ThreadLocalRandom.current().nextInt(MAX_SLEEP_BETWEEN_RETRIES));
         }
-        return ExceptionUtils.throwException(throwable);
+        return rethrowExceptionAndReturn(throwable);
     }
 
 

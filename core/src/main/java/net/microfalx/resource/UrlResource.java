@@ -44,6 +44,7 @@ public class UrlResource extends AbstractResource {
      * @return a non-null instance
      */
     public static Resource create(URI uri) throws IOException {
+        requireNonNull(uri);
         Type type = ResourceUtils.isDirectory(uri) ? Type.DIRECTORY : Type.FILE;
         return create(uri.toURL(), type);
     }
@@ -55,6 +56,7 @@ public class UrlResource extends AbstractResource {
      * @return a non-null instance
      */
     public static Resource create(URL url) {
+        requireNonNull(url);
         Type type = ResourceUtils.isDirectory(url) ? Type.DIRECTORY : Type.FILE;
         return create(url, type);
     }

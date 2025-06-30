@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
+import static net.microfalx.lang.ExceptionUtils.rethrowExceptionAndReturn;
 import static net.microfalx.lang.StringUtils.*;
 import static net.microfalx.lang.TimeUtils.ONE_MINUTE;
 import static net.microfalx.lang.TimeUtils.millisSince;
@@ -471,7 +472,7 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
             try {
                 return ((URI) value).toURL();
             } catch (MalformedURLException e) {
-                return ExceptionUtils.throwException(e);
+                return rethrowExceptionAndReturn(e);
             }
         } else if (value instanceof String) {
             return toUrl(URI.create((String) value));
@@ -544,7 +545,7 @@ public class S3Resource extends AbstractStatefulResource<MinioClient, MinioClien
                 }
                 return object;
             } catch (Exception e) {
-                return ExceptionUtils.throwException(e);
+                return rethrowExceptionAndReturn(e);
             }
         }
     }

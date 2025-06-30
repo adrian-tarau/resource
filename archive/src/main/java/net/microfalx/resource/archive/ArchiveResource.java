@@ -24,7 +24,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
-import static net.microfalx.lang.ExceptionUtils.throwException;
+import static net.microfalx.lang.ExceptionUtils.rethrowExceptionAndReturn;
 import static net.microfalx.lang.IOUtils.getUnclosableInputStream;
 import static net.microfalx.lang.StringUtils.removeEndSlash;
 import static net.microfalx.lang.StringUtils.removeStartSlash;
@@ -284,7 +284,7 @@ public final class ArchiveResource extends AbstractResource {
                 }
             }
         } catch (Exception e) {
-            return throwException(e);
+            return rethrowExceptionAndReturn(e);
         }
         Type discoveredType = libTypeToType.get(type);
         if (discoveredType == null) throw new ResolutionException("Unknown archive type for " + toURI());

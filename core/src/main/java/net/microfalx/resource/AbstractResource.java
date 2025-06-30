@@ -15,7 +15,7 @@ import static java.net.URLConnection.guessContentTypeFromName;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
-import static net.microfalx.lang.ExceptionUtils.throwException;
+import static net.microfalx.lang.ExceptionUtils.rethrowExceptionAndReturn;
 import static net.microfalx.lang.FileUtils.removeFileExtension;
 import static net.microfalx.lang.IOUtils.*;
 import static net.microfalx.lang.StringUtils.*;
@@ -58,7 +58,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
             try {
                 type = calculateType(type);
             } catch (IOException e) {
-                return throwException(e);
+                return rethrowExceptionAndReturn(e);
             }
             typeRecalculated = true;
         }
@@ -746,7 +746,7 @@ public abstract class AbstractResource implements Resource, Cloneable {
             abstractResource.hash = null;
             return (T) abstractResource;
         } catch (CloneNotSupportedException e) {
-            return throwException(e);
+            return rethrowExceptionAndReturn(e);
         }
     }
 

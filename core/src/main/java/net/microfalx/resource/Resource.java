@@ -1,6 +1,7 @@
 package net.microfalx.resource;
 
 import net.microfalx.lang.StringUtils;
+import net.microfalx.lang.UriUtils;
 
 import java.io.*;
 import java.net.URI;
@@ -138,6 +139,16 @@ public interface Resource extends Serializable {
     }
 
     /**
+     * Returns the stream resource based on some input stream.
+     *
+     * @param content the content as a byte array
+     * @return a non-null instance
+     */
+    static Resource stream(InputStream content) {
+        return StreamResource.create(content);
+    }
+
+    /**
      * Returns the URL resource.
      *
      * @param url the URL to the resource
@@ -145,6 +156,16 @@ public interface Resource extends Serializable {
      */
     static Resource url(URL url) {
         return UrlResource.create(url);
+    }
+
+    /**
+     * Returns the URL resource.
+     *
+     * @param url the URL to the resource
+     * @return a non-null instance
+     */
+    static Resource url(String url) {
+        return UrlResource.create(UriUtils.parseUrl(url));
     }
 
     /**
