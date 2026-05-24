@@ -75,7 +75,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <bom.version>1.0.17</bom.version>
+        <bom.version>1.0.19</bom.version>
         <lang.version>1.0.2</lang.version>
         <metrics.version>1.0.1</metrics.version>
 
