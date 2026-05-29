@@ -89,6 +89,16 @@ public final class ClassPathResource extends UrlResource {
     }
 
     /**
+     * Returns the URi to access a class path resource.
+     *
+     * @param path the relative path of the resource
+     * @return a non-ull instance
+     */
+    public static URI toUri(String path) {
+        return ResourceUtils.toUri(CLASS_PATH_SCHEME, path);
+    }
+
+    /**
      * Create a new resource from a resource in the class path.
      *
      * @param path the path of the resource
@@ -304,7 +314,7 @@ public final class ClassPathResource extends UrlResource {
         @Override
         public Resource resolve(URI uri, Resource.Type type) {
             requireNonNull(uri);
-            Resource resource= type != null ? ClassPathResource.create(uri.getPath(), type) : ClassPathResource.create(uri.getPath());
+            Resource resource = type != null ? ClassPathResource.create(uri.getPath(), type) : ClassPathResource.create(uri.getPath());
             return resource.withFragment(uri.getFragment());
         }
     }

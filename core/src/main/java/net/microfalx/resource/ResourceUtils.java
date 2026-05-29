@@ -17,8 +17,7 @@ import java.util.function.Function;
 
 import static net.microfalx.lang.ArgumentUtils.requireNonNull;
 import static net.microfalx.lang.ExceptionUtils.rethrowExceptionAndReturn;
-import static net.microfalx.lang.StringUtils.isEmpty;
-import static net.microfalx.lang.StringUtils.split;
+import static net.microfalx.lang.StringUtils.*;
 import static net.microfalx.lang.ThreadUtils.sleepMillis;
 
 /**
@@ -92,6 +91,19 @@ public class ResourceUtils {
         } catch (URISyntaxException e) {
             throw new ResourceException("Failed to create a local file system URI from " + uri, e);
         }
+    }
+
+    /**
+     * Creates a URI from a scheme and a path.
+     *
+     * @param scheme the scheme
+     * @param path   the path (can be null/empty for root)
+     * @return the URI
+     */
+    public static URI toUri(String scheme, String path) {
+        requireNonNull(scheme);
+        path = defaultIfNull(path, EMPTY_STRING);
+        return URI.create(scheme + ":" + addStartSlash(path));
     }
 
     /**
