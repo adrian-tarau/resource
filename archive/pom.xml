@@ -25,12 +25,12 @@
 
     <groupId>net.microfalx.resource</groupId>
     <artifactId>resource-archive</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4-beta</version>
 
     <parent>
         <groupId>net.microfalx.resource</groupId>
         <artifactId>resource</artifactId>
-        <version>1.0.3</version>
+        <version>1.0.4-beta</version>
     </parent>
 
     <name>Resource :: Archive</name>
